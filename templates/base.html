@@ -1,0 +1,111 @@
+<!doctype html>
+<meta name='viewport' content='width=device-width, initial-scale=0.66'>
+<title>{{ template "title" . }}</title>
+<script src='https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/jquery-ui-dist@1/jquery-ui.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/chart.js@2/dist/Chart.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js'></script>
+<script src='/static/script.js'></script>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css'>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/google/material-design-icons@3/iconfont/material-icons.min.css'>
+<link rel='stylesheet' href='/static/style.css'>
+<nav class='navbar navbar-light topbar'>
+  <a class='brand' href='/'>My Stocks</a>
+  <div class='navbar-nav flex-row'>
+    {{ if .user }}
+    <a class='nav-link'>{{ .user }}</a>
+    <a class='nav-link link' href='/auth/setting'>Setting</a>
+    <a class='nav-link link' href='/auth/logout'>Log Out</a>
+    {{ else }}
+    <a class='nav-link link' href='/auth/login'>Log In</a></li>
+    {{ end }}
+  </div>
+</nav>
+<div class='content'>
+  <header>
+    {{ template "search" . }}
+    {{ template "header" . }}
+  </header>
+  {{ if ne .error "" }}
+  <div class="alert alert-danger {% if request.endpoint == 'auth.login' %}login{% else %}d-inline-flex{% endif %}">{{ .error }}</div>
+  {{ end }}
+  {{ template "content" . }}
+</div>
+<div class='indices'>
+  <a id='沪'>
+    <span class='full'>上证指数</span>
+    <span class='short'>上</span>
+    &nbsp;&nbsp;
+    <span class='now'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='change'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='percent'>n/a</span>
+  </a>
+  <a id='深'>
+    <span class='full'>深证成指</span>
+    <span class='short'>深</span>
+    &nbsp;&nbsp;
+    <span class='now'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='change'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='percent'>n/a</span>
+  </a>
+  <a id='创'>
+    <span class='full'>创业板指</span>
+    <span class='short'>创</span>
+    &nbsp;&nbsp;
+    <span class='now'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='change'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='percent'>n/a</span>
+  </a>
+  <a id='中小板'>
+    <span class='full'>中小板指</span>
+    <span class='short'>中</span>
+    &nbsp;&nbsp;
+    <span class='now'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='change'>n/a</span>
+    &nbsp;&nbsp;
+    <span class='percent'>n/a</span>
+  </a>
+</div>
+<script>
+  $(function () {
+    update_indices();
+    setInterval(function () {
+      update_indices(ct=true);
+    }, 30000);
+  });
+  $("#autocomplete").autocomplete({
+    source: function (request, response) {
+      $.get('/suggest', {
+        keyword: request.term
+      }, function (data) {
+        if (!data.length) {
+          response(['No matches found.']);
+        } else {
+          response($.map(data, function (item) {
+            return item.category + ':' + item.code + ' ' + item.name + ' ' + item.type;
+          }));
+        };
+      });
+    },
+    select: function (event, ui) {
+      if (ui.item.value == 'No matches found.') {
+        event.preventDefault();
+      } else {
+        var stock = ui.item.value.split(' ')[0].split(':');
+        window.location.replace('/' + stock[0] + '/' + stock[1]);
+      };
+    },
+    minLength: 2,
+    autoFocus: true,
+    position: {
+      of: '.search'
+    }
+  });
+</script>

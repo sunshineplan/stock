@@ -1,0 +1,3 @@
+#! /bin/bash
+
+/var/www/mystocks-go/mystocks-go backup

@@ -1,0 +1,10 @@
+[Unit]
+Description=uWSGI instance to serve My Stocks
+After=network.target
+
+[Service]
+Environment=GIN_MODE=release
+ExecStart=/var/www/mystocks-go/mystocks-go
+
+[Install]
+WantedBy=multi-user.target
