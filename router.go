@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -45,210 +43,36 @@ func myStocks(c *gin.Context) {
 		stock := initStock(index, code)
 		stocks = append(stocks, stock)
 	}
-	doGetRealtimes(stocks)
-
-	c.JSON(200, "index.html", gin.H{"category": category, "stocks": stocks})
+	c.JSON(200, doGetRealtimes(stocks))
 }
 
-func addstock(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
-	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
-		c.String(503, "")
-		return
-	}
-	defer db.Close()
-	session := sessions.Default(c)
-	userID := session.Get("user_id")
-
-	var stock stock
-	var categories []string
-	categoryID, err := strconv.Atoi(c.Query("category"))
-	if err == nil {
-		db.QueryRow("SELECT category FROM category WHERE id = ? AND user_id = ?", categoryID, userID).Scan(&stock.Category)
-	} else {
-		stock.Category = []byte("")
-	}
-	rows, err := db.Query("SELECT category FROM category WHERE user_id = ? ORDER BY category", userID)
-	if err != nil {
-		log.Printf("Failed to get categories name: %v", err)
-		c.String(500, "")
-		return
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var categoryName string
-		if err := rows.Scan(&categoryName); err != nil {
-			log.Printf("Failed to scan category name: %v", err)
-			c.String(500, "")
-			return
-		}
-		categories = append(categories, categoryName)
-	}
-	c.HTML(200, "stock.html", gin.H{"id": 0, "stock": stock, "categories": categories})
+func indices(c *gin.Context) {
+	indices := []stock{&sse{code: "000001"}, &szse{code: "399001"}, &szse{code: "399006"}, &szse{code: "399005"}}
+	c.JSON(200, doGetRealtimes(indices))
 }
 
-func doAddstock(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
-	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
-		c.String(503, "")
-		return
-	}
-	defer db.Close()
-	session := sessions.Default(c)
-	userID := session.Get("user_id")
-	category := strings.TrimSpace(c.PostForm("category"))
-	stock := strings.TrimSpace(c.PostForm("stock"))
-	url := strings.TrimSpace(c.PostForm("url"))
-	categoryID, err := getCategoryID(category, userID.(int), db)
-	if err != nil {
-		log.Printf("Failed to get category id: %v", err)
-		c.String(500, "")
-		return
-	}
+func getStock(c *gin.Context) {
+	index := c.Param("index")
+	code := c.Param("code ")
+	q := c.Param("q")
 
-	var exist, message string
-	var errorCode int
-	if stock == "" {
-		message = "stock name is empty."
-		errorCode = 1
-	} else if err = db.QueryRow("SELECT id FROM stock WHERE stock = ? AND user_id = ?", stock, userID).Scan(&exist); err == nil {
-		message = fmt.Sprintf("stock name %s is already existed.", stock)
-		errorCode = 1
-	} else if err = db.QueryRow("SELECT id FROM stock WHERE url = ? AND user_id = ?", url, userID).Scan(&exist); err == nil {
-		message = fmt.Sprintf("stock url %s is already existed.", url)
-		errorCode = 2
-	} else if categoryID == -1 {
-		message = "Category name exceeded length limit."
-		errorCode = 3
-	} else {
-		_, err = db.Exec("INSERT INTO stock (stock, url, user_id, category_id) VALUES (?, ?, ?, ?)", stock, url, userID, categoryID)
-		if err != nil {
-			log.Printf("Failed to add stock: %v", err)
-			c.String(500, "")
-			return
-		}
-		c.JSON(200, gin.H{"status": 1})
+	stock := initStock(index, code)
+
+	if q == "realtime" {
+		c.JSON(200, stock.realtime())
+		return
+	} else if q == "chart" {
+		c.JSON(200, stock.chart())
 		return
 	}
-	c.JSON(200, gin.H{"status": 0, "message": message, "error": errorCode})
+	c.String(400, "")
 }
 
-func editstock(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
-	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
-		c.String(503, "")
-		return
-	}
-	defer db.Close()
-	session := sessions.Default(c)
-	userID := session.Get("user_id")
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("Failed to get id param: %v", err)
-		c.String(400, "")
-		return
-	}
-
-	var stock stock
-	err = db.QueryRow(`
-SELECT stock, url, category FROM stock
-LEFT JOIN category ON category_id = category.id
-WHERE stock.id = ? AND stock.user_id = ?
-`, id, userID).Scan(&stock.Name, &stock.URL, &stock.Category)
-	if err != nil {
-		log.Printf("Failed to scan stock: %v", err)
-		c.String(500, "")
-		return
-	}
-
-	var categories []string
-	rows, err := db.Query("SELECT category FROM category WHERE user_id = ? ORDER BY category", userID)
-	if err != nil {
-		log.Printf("Failed to get categories: %v", err)
-		c.String(500, "")
-		return
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var category string
-		if err := rows.Scan(&category); err != nil {
-			log.Printf("Failed to scan category: %v", err)
-			c.String(500, "")
-			return
-		}
-		categories = append(categories, category)
-	}
-	c.HTML(200, "stock.html", gin.H{"id": id, "stock": stock, "categories": categories})
-}
-
-func doEditstock(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
-	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
-		c.String(503, "")
-		return
-	}
-	defer db.Close()
-	session := sessions.Default(c)
-	userID := session.Get("user_id")
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("Failed to get id param: %v", err)
-		c.String(400, "")
-		return
-	}
-
-	var old stock
-	err = db.QueryRow(`
-SELECT stock, url, category FROM stock
-LEFT JOIN category ON category_id = category.id
-WHERE stock.id = ? AND stock.user_id = ?
-`, id, userID).Scan(&old.Name, &old.URL, &old.Category)
-	if err != nil {
-		log.Printf("Failed to scan stock: %v", err)
-		c.String(500, "")
-		return
-	}
-	stock := strings.TrimSpace(c.PostForm("stock"))
-	url := strings.TrimSpace(c.PostForm("url"))
-	category := strings.TrimSpace(c.PostForm("category"))
-	categoryID, err := getCategoryID(category, userID.(int), db)
-	if err != nil {
-		log.Printf("Failed to get category id: %v", err)
-		c.String(500, "")
-		return
-	}
-
-	var exist, message string
-	var errorCode int
-	if stock == "" {
-		message = "stock name is empty."
-		errorCode = 1
-	} else if old.Name == stock && old.URL == url && string(old.Category) == category {
-		message = "New stock is same as old stock."
-	} else if err = db.QueryRow("SELECT id FROM stock WHERE stock = ? AND id != ? AND user_id = ?", stock, id, userID).Scan(&exist); err == nil {
-		message = fmt.Sprintf("stock name %s is already existed.", stock)
-		errorCode = 1
-	} else if err = db.QueryRow("SELECT id FROM stock WHERE url = ? AND id != ? AND user_id = ?", url, id, userID).Scan(&exist); err == nil {
-		message = fmt.Sprintf("stock url %s is already existed.", url)
-		errorCode = 2
-	} else if categoryID == -1 {
-		message = "Category name exceeded length limit."
-		errorCode = 3
-	} else {
-		_, err = db.Exec("UPDATE stock SET stock = ?, url = ?, category_id = ? WHERE id = ? AND user_id = ?", stock, url, categoryID, id, userID)
-		if err != nil {
-			log.Printf("Failed to edit stock: %v", err)
-			c.String(500, "")
-			return
-		}
-		c.JSON(200, gin.H{"status": 1})
-		return
-	}
-	c.JSON(200, gin.H{"status": 0, "message": message, "error": errorCode})
+func getSuggest(c *gin.Context) {
+	keyword := c.Param("keyword")
+	sse := sseSuggest(keyword)
+	szse := szseSuggest(keyword)
+	c.JSON(200, append(sse, szse...))
 }
 
 func doDeletestock(c *gin.Context) {

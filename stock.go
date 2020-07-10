@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+const (
+	ssePattern  = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
+	szsePattern = `(00[0-3]|159|300|399)\d{3}`
+)
+
 type stock interface {
 	realtime() map[string]interface{}
 	chart() map[string]interface{}
@@ -155,6 +160,47 @@ func (s *sse) chart() map[string]interface{} {
 	return r
 }
 
+func sseSuggest(keyword string) (r []map[string]interface{}) {
+	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=%" + keyword + "%"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("New Request Error: %v", err)
+		return
+	}
+	req.Header.Set("Referer", "http://www.sse.com.cn/")
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Do Request Error: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("ReadAll body Error: %v", err)
+		return
+	}
+	var jsonData interface{}
+	err = json.Unmarshal(data, &jsonData)
+	if err != nil {
+		log.Printf("Unmarshal json Error: %v", err)
+		return
+	}
+	suggest := jsonData.(map[string]interface{})["data"].([]interface{})
+	re := regexp.MustCompile(ssePattern)
+	for _, v := range suggest {
+		if re.MatchString(v.(map[string]interface{})["CODE"].(string)) {
+			r = append(r, map[string]interface{}{
+				"category": "SSE",
+				"code":     v.(map[string]interface{})["CODE"],
+				"name":     v.(map[string]interface{})["WORD"],
+				"type":     v.(map[string]interface{})["CATEGORY"],
+			})
+		}
+	}
+	return
+}
+
 type szse struct {
 	code      string
 	name      string
@@ -257,33 +303,61 @@ func (s *szse) chart() map[string]interface{} {
 	return r
 }
 
-func initStock(index, code string) (s stock) {
-	switch index {
-	case "SSE":
-		re := regexp.MustCompile(`000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`)
+func szseSuggest(keyword string) (r []map[string]interface{}) {
+	url := "http://www.szse.cn/api/search/suggest?keyword=" + keyword
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		log.Printf("New Request Error: %v", err)
+		return
+	}
+	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Do Request Error: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("ReadAll body Error: %v", err)
+		return
+	}
+	var jsonData interface{}
+	err = json.Unmarshal(data, &jsonData)
+	if err != nil {
+		log.Printf("Unmarshal json Error: %v", err)
+		return
+	}
+	suggest := jsonData.([]interface{})
+	re := regexp.MustCompile(szsePattern)
+	for _, v := range suggest {
+		code := strings.ReplaceAll(strings.ReplaceAll(v.(map[string]interface{})["wordB"].(string), `<span class="keyword">`, ""), "</span>", "")
 		if re.MatchString(code) {
-			s = &sse{code: code}
-		}
-	case "SZSE":
-		re := regexp.MustCompile(`(00[0-3]|159|300|399)\d{3}`)
-		if re.MatchString(code) {
-			s = &szse{code: code}
+			r = append(r, map[string]interface{}{
+				"category": "SZSE",
+				"code":     code,
+				"name":     v.(map[string]interface{})["value"],
+				"type":     v.(map[string]interface{})["type"],
+			})
 		}
 	}
 	return
 }
 
-func doGetRealtimes(s []stock) []map[string]interface{} {
-	var wg sync.WaitGroup
-	for _, i := range s {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			i.realtime()
-		}()
+func initStock(index, code string) (s stock) {
+	switch index {
+	case "SSE":
+		re := regexp.MustCompile(ssePattern)
+		if re.MatchString(code) {
+			s = &sse{code: code}
+		}
+	case "SZSE":
+		re := regexp.MustCompile(szsePattern)
+		if re.MatchString(code) {
+			s = &szse{code: code}
+		}
 	}
-	wg.Wait()
-	return nil
+	return
 }
 
 func doGetRealtime(index, code string) map[string]interface{} {
@@ -294,4 +368,18 @@ func doGetRealtime(index, code string) map[string]interface{} {
 func doGetChart(index, code string) map[string]interface{} {
 	s := initStock(index, code)
 	return s.chart()
+}
+
+func doGetRealtimes(s []stock) []map[string]interface{} {
+	var r []map[string]interface{}
+	var wg sync.WaitGroup
+	for _, i := range s {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			r = append(r, i.realtime())
+		}()
+	}
+	wg.Wait()
+	return r
 }
