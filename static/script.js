@@ -169,3 +169,14 @@ function check_time() {
     return 1;
   };
 };
+
+function reorder(event, ui) {
+  var orig, dest
+  orig = ui.item.find('td')[0].textContent + ' ' + ui.item.find('td')[1].textContent;
+  if (ui.item.prev().length != 0) {
+    dest = ui.item.prev().find('td')[0].textContent + ' ' + ui.item.prev().find('td')[1].textContent;
+  } else {
+    dest = '#TOP_POSITION#';
+  };
+  $.post('/reorder', { orig: orig, dest: dest });
+}

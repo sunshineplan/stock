@@ -125,7 +125,7 @@
           }
         }]
       },
-      annotation:{
+      annotation: {
         annotations: [
           {
             id: 'PreviousClose',
@@ -144,10 +144,10 @@
       update_chart('{{ .index }}', '{{ .code }}');
       update_realtime('{{ .index }}', '{{ .code }}');
       setInterval(() => {
-        update_chart('{{ .index }}', '{{ .code }}', ct=true);
+        update_chart('{{ .index }}', '{{ .code }}', ct = true);
       }, 60000);
       setInterval(() => {
-        update_realtime('{{ .index }}', '{{ .code }}', ct=true);
+        update_realtime('{{ .index }}', '{{ .code }}', ct = true);
       }, 3000);
     };
   });
