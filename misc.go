@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,9 +9,10 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/sunshineplan/metadata"
 	"github.com/sunshineplan/utils/mail"
 )
+
+// var mailSetting = mail.Setting{}
 
 func addUser(username string) {
 	log.Println("Start!")
@@ -54,15 +54,6 @@ func deleteUser(username string) {
 
 func backup() {
 	log.Println("Start!")
-	m, err := metadata.Get("mystocks_backup", &metadataConfig)
-	if err != nil {
-		log.Fatalf("Failed to get mystocks_backup metadata: %v", err)
-	}
-	var mailSetting mail.Setting
-	if err := json.Unmarshal(m, &mailSetting); err != nil {
-		log.Fatalf("Failed to unmarshal json: %v", err)
-	}
-
 	file := dump()
 	defer os.Remove(file)
 	if err := mail.SendMail(
