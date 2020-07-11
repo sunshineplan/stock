@@ -15,9 +15,9 @@
     {{ if .user }}
     <a class='nav-link'>{{ .user }}</a>
     <a class='nav-link link' href='/auth/setting'>Setting</a>
-    <a class='nav-link link' href='/auth/logout'>Log Out</a>
+    <a class='nav-link link' href='/auth/logout'>Logout</a>
     {{ else }}
-    <a class='nav-link link' href='/auth/login'>Log In</a></li>
+    <a class='nav-link link' href='/auth/login'>Login</a></li>
     {{ end }}
   </div>
 </nav>
@@ -96,7 +96,7 @@
         event.preventDefault();
       } else {
         var stock = ui.item.value.split(' ')[0].split(':');
-        window.location.replace('/' + stock[0] + '/' + stock[1]);
+        window.location.replace('/stock/' + stock[0] + '/' + stock[1]);
       };
     },
     minLength: 2,

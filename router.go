@@ -11,14 +11,16 @@ import (
 )
 
 func showStock(c *gin.Context) {
+	session := sessions.Default(c)
+	username := session.Get("username")
 	index := c.Param("index")
 	code := c.Param("code")
 	stock := initStock(index, code)
 	if stock != nil {
-		c.HTML(200, "chart.html", gin.H{"index": index, "code": code})
+		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code})
 		return
 	}
-	c.HTML(200, "chart.html", gin.H{"index": "n/a", "code": "n/a"})
+	c.HTML(200, "chart.html", gin.H{"user": username, "index": "n/a", "code": "n/a"})
 }
 
 func myStocks(c *gin.Context) {

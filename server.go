@@ -64,15 +64,17 @@ func run() {
 		}
 		c.HTML(200, "login.html", gin.H{"error": ""})
 	})
-	auth.POST("/login", login)
 	auth.GET("/logout", authRequired, func(c *gin.Context) {
 		session := sessions.Default(c)
 		session.Clear()
 		session.Save()
-		c.Redirect(302, "/auth/login")
+		c.Redirect(302, "/")
 	})
+	auth.POST("/login", login)
 	auth.GET("/setting", authRequired, func(c *gin.Context) {
-		c.HTML(200, "setting.html", nil)
+		session := sessions.Default(c)
+		username := session.Get("username")
+		c.HTML(200, "setting.html", gin.H{"user": username, "error": ""})
 	})
 	auth.POST("/setting", authRequired, setting)
 

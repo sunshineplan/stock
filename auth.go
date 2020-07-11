@@ -21,7 +21,7 @@ func authRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 	if userID == nil {
-		c.AbortWithStatus(401)
+		c.Redirect(302, "/")
 	}
 }
 
@@ -50,8 +50,7 @@ func login(c *gin.Context) {
 			message = "Incorrect username"
 		} else {
 			log.Println(err)
-			c.HTML(200, "login.html", gin.H{"error": "Critical Error! Please contact your system administrator."})
-			return
+			message = "Critical Error! Please contact your system administrator."
 		}
 	} else {
 		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
@@ -59,8 +58,7 @@ func login(c *gin.Context) {
 				message = "Incorrect password"
 			} else if user.Password != password {
 				log.Println(err)
-				c.HTML(200, "login.html", gin.H{"error": "Critical Error! Please contact your system administrator."})
-				return
+				message = "Critical Error! Please contact your system administrator."
 			}
 		}
 		if message == "" {
@@ -91,7 +89,7 @@ func setting(c *gin.Context) {
 	db, err := sql.Open("sqlite3", sqlite)
 	if err != nil {
 		log.Printf("Failed to connect to database: %v", err)
-		c.String(503, "")
+		c.HTML(200, "login.html", gin.H{"error": "Failed to connect to database."})
 		return
 	}
 	defer db.Close()
@@ -106,29 +104,24 @@ func setting(c *gin.Context) {
 	err = db.QueryRow("SELECT password FROM user WHERE id = ?", userID).Scan(&oldPassword)
 	if err != nil {
 		log.Println(err)
-		c.String(500, "")
+		c.HTML(200, "login.html", gin.H{"error": "Failed to get current user password."})
 		return
 	}
 
 	var message string
-	var errorCode int
 	err = bcrypt.CompareHashAndPassword([]byte(oldPassword), []byte(password))
 	switch {
 	case err != nil:
 		if (strings.Contains(err.Error(), "too short") && password != oldPassword) || strings.Contains(err.Error(), "is not") {
 			message = "Incorrect password."
-			errorCode = 1
 		} else if password != oldPassword {
 			log.Println(err)
-			c.String(500, "")
-			return
+			message = "Failed to compare password."
 		}
 	case password1 != password2:
 		message = "Confirm password doesn't match new password."
-		errorCode = 2
 	case password1 == password:
 		message = "New password cannot be the same as your current password."
-		errorCode = 2
 	case password1 == "":
 		message = "New password cannot be blank."
 	}
@@ -137,23 +130,21 @@ func setting(c *gin.Context) {
 		newPassword, err := bcrypt.GenerateFromPassword([]byte(password1), bcrypt.MinCost)
 		if err != nil {
 			log.Println(err)
-			c.String(500, "")
+			c.HTML(200, "login.html", gin.H{"error": "Failed to encrypt new password."})
 			return
 		}
 		_, err = db.Exec("UPDATE user SET password = ? WHERE id = ?", string(newPassword), userID)
 		if err != nil {
 			log.Println(err)
-			c.String(500, "")
+			c.HTML(200, "login.html", gin.H{"error": "Failed to update new password."})
 			return
 		}
 		session.Clear()
 		if err := session.Save(); err != nil {
 			log.Println(err)
-			c.String(500, "")
+			c.HTML(200, "login.html", gin.H{"error": "Failed to save session."})
 			return
 		}
-		c.JSON(200, gin.H{"status": 1})
-		return
 	}
-	c.JSON(200, gin.H{"status": 0, "message": message, "error": errorCode})
+	c.HTML(200, "setting.html", gin.H{"error": message})
 }

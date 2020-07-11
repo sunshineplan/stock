@@ -20,6 +20,8 @@ const (
 	szsePattern = `(00[0-3]|159|300|399)\d{3}`
 )
 
+var client = &http.Client{Transport: &http.Transport{Proxy: nil}, Timeout: 2 * time.Second}
+
 type stock interface {
 	realtime() map[string]interface{}
 	chart() map[string]interface{}
@@ -48,7 +50,6 @@ func (s *sse) getRealtime() {
 		log.Printf("New Request Error: %v", err)
 		return
 	}
-	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Do Request Error: %v", err)
@@ -102,7 +103,6 @@ func (s *sse) getChart() {
 		log.Printf("New Request Error: %v", err)
 		return
 	}
-	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Do Request Error: %v", err)
@@ -167,14 +167,13 @@ func (s *sse) chart() map[string]interface{} {
 }
 
 func sseSuggest(keyword string) (r []map[string]interface{}) {
-	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=%" + keyword + "%"
+	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=" + keyword
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("New Request Error: %v", err)
 		return
 	}
 	req.Header.Set("Referer", "http://www.sse.com.cn/")
-	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Do Request Error: %v", err)
@@ -230,7 +229,6 @@ func (s *szse) getRealtime() {
 		log.Printf("New Request Error: %v", err)
 		return
 	}
-	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Do Request Error: %v", err)
@@ -318,7 +316,6 @@ func szseSuggest(keyword string) (r []map[string]interface{}) {
 		log.Printf("New Request Error: %v", err)
 		return
 	}
-	client := &http.Client{Transport: &http.Transport{Proxy: nil}}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Do Request Error: %v", err)
@@ -379,14 +376,14 @@ func doGetChart(index, code string) map[string]interface{} {
 }
 
 func doGetRealtimes(s []stock) []map[string]interface{} {
-	var r []map[string]interface{}
+	r := make([]map[string]interface{}, len(s))
 	var wg sync.WaitGroup
-	for _, i := range s {
+	for i, v := range s {
 		wg.Add(1)
-		go func(s stock) {
+		go func(i int, s stock) {
 			defer wg.Done()
-			r = append(r, s.realtime())
-		}(i)
+			r[i] = s.realtime()
+		}(i, v)
 	}
 	wg.Wait()
 	return r
