@@ -77,7 +77,7 @@ func (s *sse) getRealtime() {
 	s.name = snap[0].(string)
 	s.now = snap[5].(float64)
 	s.change = snap[6].(float64)
-	s.percent = fmt.Sprintf("%.3f", snap[7].(float64)) + "%"
+	s.percent = fmt.Sprintf("%.2f", snap[7].(float64)) + "%"
 	s.high = snap[3].(float64)
 	s.low = snap[4].(float64)
 	s.open = snap[2].(float64)
@@ -260,7 +260,7 @@ func (s *szse) getRealtime() {
 	var buy5 [][]interface{}
 	if d["sellbuy5"] != nil {
 		for i, v := range d["sellbuy5"].([]interface{}) {
-			if i > 5 {
+			if i > 4 {
 				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
 			} else {
 				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})

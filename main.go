@@ -8,11 +8,14 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/sunshineplan/metadata"
 	"github.com/vharitonsky/iniflags"
 )
 
 // OS is the running program's operating system
 const OS = runtime.GOOS
+
+var metadataConfig metadata.Config
 
 var self, sqlite string
 var unix, host, port, logPath *string
@@ -32,10 +35,14 @@ func init() {
 }
 
 func main() {
+	flag.StringVar(&metadataConfig.Server, "server", "", "Metadata Server Address")
+	flag.StringVar(&metadataConfig.VerifyHeader, "header", "", "Verify Header Header Name")
+	flag.StringVar(&metadataConfig.VerifyValue, "value", "", "Verify Header Value")
 	unix = flag.String("unix", "", "UNIX-domain Socket")
-	host = flag.String("host", "127.0.0.1", "Server Host")
-	port = flag.String("port", "12345", "Server Port")
-	logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
+	host = flag.String("host", "0.0.0.0", "Server Host")
+	port = flag.String("port", "8888", "Server Port")
+	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
+	logPath = flag.String("log", "", "Log Path")
 	iniflags.SetConfigFile(joinPath(dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.Parse()

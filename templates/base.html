@@ -82,7 +82,7 @@
       $.get('/suggest', {
         keyword: request.term
       }, data => {
-        if (!data.length) {
+        if (!data) {
           response(['No matches found.']);
         } else {
           response($.map(data, item => {

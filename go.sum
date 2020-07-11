@@ -44,6 +44,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/sunshineplan/metadata v1.0.3 h1:vPXr1qpf1jtw3JCcY6A3/AmyX6lljt64u0x80Dzcnsk=
+github.com/sunshineplan/metadata v1.0.3/go.mod h1:0MYYxq/eL+DQecrRyVk6YGjwf2DUEbQ96nREGYWojyE=
 github.com/sunshineplan/utils v0.0.0-20200625024123-88d74af4ca23 h1:slN9HWGSnECBuuMQqaL6qDWdNM/Sy6TV9IneqYp1OQM=
 github.com/sunshineplan/utils v0.0.0-20200625024123-88d74af4ca23/go.mod h1:fJ8/Fjbd50RwQ8/wxBmBgkuDHfcXrCJu6c/iRsgkYok=
 github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=

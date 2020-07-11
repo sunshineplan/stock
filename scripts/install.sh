@@ -5,14 +5,14 @@ installSoftware() {
     apt -qq -y -t $(lsb_release -sc)-backports install golang-go
 }
 
-installMyIP() {
+installMyStocks() {
     curl -Lo- https://github.com/sunshineplan/mystocks-go/archive/v1.0.tar.gz | tar zxC /var/www
     mv /var/www/mystocks-go* /var/www/mystocks-go
     cd /var/www/mystocks-go
     go build
 }
 
-configMyIP() {
+configMyStocks() {
     read -p 'Please enter metadata server: ' server
     read -p 'Please enter VerifyHeader header: ' header
     read -p 'Please enter VerifyHeader value: ' value
@@ -70,8 +70,8 @@ setupNGINX() {
 main() {
     read -p 'Please enter domain:' domain
     installSoftware
-    installMyIP
-    configMyIP
+    installMyStocks
+    configMyStocks
     setupsystemd
     writeLogrotateScrip
     createCronTask
