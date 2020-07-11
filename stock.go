@@ -375,10 +375,10 @@ func doGetRealtimes(s []stock) []map[string]interface{} {
 	var wg sync.WaitGroup
 	for _, i := range s {
 		wg.Add(1)
-		go func() {
+		go func(s stock) {
 			defer wg.Done()
-			r = append(r, i.realtime())
-		}()
+			r = append(r, s.realtime())
+		}(i)
 	}
 	wg.Wait()
 	return r

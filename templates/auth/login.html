@@ -23,10 +23,10 @@
   <input type='submit' id='submit' value='Log In' class='btn btn-primary login'>
 </form>
 <script>
-  $(function() {
+  $(() => {
     username = localStorage.getItem('username');
     if (username != null) $('#username').val(username);
-    $('#submit').click(function() {
+    $('#submit').click(() => {
       if ($('#username').val() != 'admin') localStorage.setItem('username', $('#username').val());
     });
   });

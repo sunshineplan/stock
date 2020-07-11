@@ -30,30 +30,30 @@
   </table>
 </div>
 <script>
-  $(function () {
+  $(() => {
     $('#mystocks').sortable({
-      start: function () {
+      start: () => {
         mystocks.abort();
         clearInterval(reload);
       },
-      stop: function () {
+      stop: () => {
         my_stocks();
-        reload = setInterval(function () {
+        reload = setInterval(() => {
           my_stocks(ct=true);
         }, 3000);
       },
-      update: function (event, ui) {
-        var orig = [ui.item.find('td')[0].textContent, ui.item.find('td')[1].textContent];
+      update: (event, ui) => {
+        var orig = ui.item.find('td')[0].textContent + ' ' + ui.item.find('td')[1].textContent;
         if (ui.item.prev().length != 0) {
-          var dest = [ui.item.prev().find('td')[0].textContent, ui.item.prev().find('td')[1].textContent];
+          var dest = ui.item.prev().find('td')[0].textContent + ' ' + ui.item.prev().find('td')[1].textContent;
         } else {
-          dest = 'top';
+          dest = '#TOP_POSITION#';
         };
-        $.post('/reorder', { orig: JSON.stringify(orig), dest: JSON.stringify(dest) });
+        $.post('/reorder', { orig: orig, dest: dest });
       }
     });
     my_stocks();
-    reload = setInterval(function () {
+    reload = setInterval(() => {
       my_stocks(ct=true);
     }, 3000);
   });

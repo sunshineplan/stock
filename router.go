@@ -3,12 +3,23 @@ package main
 import (
 	"database/sql"
 	"log"
-	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+func showStock(c *gin.Context) {
+	index := c.Param("index")
+	code := c.Param("code")
+	stock := initStock(index, code)
+	if stock != nil {
+		c.HTML(200, "chart.html", gin.H{"index": index, "code": code})
+		return
+	}
+	c.HTML(200, "chart.html", gin.H{"index": "n/a", "code": "n/a"})
+}
 
 func myStocks(c *gin.Context) {
 	db, err := sql.Open("sqlite3", sqlite)
@@ -75,7 +86,7 @@ func getSuggest(c *gin.Context) {
 	c.JSON(200, append(sse, szse...))
 }
 
-func doDeletestock(c *gin.Context) {
+func star(c *gin.Context) {
 	db, err := sql.Open("sqlite3", sqlite)
 	if err != nil {
 		log.Printf("Failed to connect to database: %v", err)
@@ -85,20 +96,56 @@ func doDeletestock(c *gin.Context) {
 	defer db.Close()
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("Failed to get id param: %v", err)
-		c.String(400, "")
-		return
-	}
+	refer := strings.Split(c.Request.Referer(), "/")
+	index := refer[len(refer)-2]
+	code := refer[len(refer)-1]
 
-	_, err = db.Exec("DELETE FROM stock WHERE id = ? and user_id = ?", id, userID)
+	if userID != nil {
+		var exist string
+		err = db.QueryRow("SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist)
+		if err == nil {
+			c.String(200, "True")
+			return
+		}
+	}
+	c.String(200, "False")
+}
+
+func doStar(c *gin.Context) {
+	db, err := sql.Open("sqlite3", sqlite)
 	if err != nil {
-		log.Printf("Failed to delete stock: %v", err)
-		c.String(500, "")
+		log.Printf("Failed to connect to database: %v", err)
+		c.String(503, "")
 		return
 	}
-	c.JSON(200, gin.H{"status": 1})
+	defer db.Close()
+	session := sessions.Default(c)
+	userID := session.Get("user_id")
+	refer := strings.Split(c.Request.Referer(), "/")
+	index := refer[len(refer)-2]
+	code := refer[len(refer)-1]
+	action := c.PostForm("action")
+
+	if userID != nil {
+		if action == "unstar" {
+			_, err = db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID)
+			if err != nil {
+				log.Printf("Failed to unstar stock: %v", err)
+				c.String(500, "")
+				return
+			}
+		} else {
+			_, err = db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)", index, code, userID)
+			if err != nil {
+				log.Printf("Failed to star stock: %v", err)
+				c.String(500, "")
+				return
+			}
+		}
+		c.String(200, "1")
+		return
+	}
+	c.String(200, "0")
 }
 
 func reorder(c *gin.Context) {
@@ -112,42 +159,41 @@ func reorder(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
-	orig := c.PostForm("orig")
+	orig := strings.Split(c.PostForm("orig"), " ")
 	dest := c.PostForm("dest")
-	next := c.PostForm("next")
 
 	var origSeq, destSeq int
 
-	err = db.QueryRow("SELECT seq FROM seq WHERE stock_id = ? AND user_id = ?", orig, userID).Scan(&origSeq)
+	err = db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq)
 	if err != nil {
 		log.Printf("Failed to scan orig seq: %v", err)
 		c.String(500, "")
 		return
 	}
 	if dest != "#TOP_POSITION#" {
-		err = db.QueryRow("SELECT seq FROM seq WHERE stock_id = ? AND user_id = ?", dest, userID).Scan(&destSeq)
+		d := strings.Split(dest, " ")
+		err = db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq)
+		if err != nil {
+			log.Printf("Failed to scan dest seq: %v", err)
+			c.String(500, "")
+			return
+		}
 	} else {
-		err = db.QueryRow("SELECT seq FROM seq WHERE stock_id = ? AND user_id = ?", next, userID).Scan(&destSeq)
-		destSeq--
-	}
-	if err != nil {
-		log.Printf("Failed to scan dest seq: %v", err)
-		c.String(500, "")
-		return
+		destSeq = 0
 	}
 
 	if origSeq > destSeq {
 		destSeq++
-		_, err = db.Exec("UPDATE seq SET seq = seq+1 WHERE seq >= ? AND user_id = ? AND seq < ?", destSeq, userID, origSeq)
+		_, err = db.Exec("UPDATE stock SET seq = seq + 1 WHERE seq >= ? AND user_id = ? AND seq < ?", destSeq, userID, origSeq)
 	} else {
-		_, err = db.Exec("UPDATE seq SET seq = seq-1 WHERE seq <= ? AND user_id = ? AND seq > ?", destSeq, userID, origSeq)
+		_, err = db.Exec("UPDATE stock SET seq = seq - 1 WHERE seq <= ? AND user_id = ? AND seq > ?", destSeq, userID, origSeq)
 	}
 	if err != nil {
 		log.Printf("Failed to update other seq: %v", err)
 		c.String(500, "")
 		return
 	}
-	_, err = db.Exec("UPDATE seq SET seq = ? WHERE stock_id = ? AND user_id = ?", destSeq, orig, userID)
+	_, err = db.Exec("UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID)
 	if err != nil {
 		log.Printf("Failed to update orig seq: %v", err)
 		c.String(500, "")

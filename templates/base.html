@@ -74,27 +74,27 @@
   </a>
 </div>
 <script>
-  $(function () {
+  $(() => {
     update_indices();
-    setInterval(function () {
+    setInterval(() => {
       update_indices(ct=true);
     }, 30000);
   });
   $("#autocomplete").autocomplete({
-    source: function (request, response) {
+    source: (request, response) => {
       $.get('/suggest', {
         keyword: request.term
-      }, function (data) {
+      }, data => {
         if (!data.length) {
           response(['No matches found.']);
         } else {
-          response($.map(data, function (item) {
+          response($.map(data, item => {
             return item.category + ':' + item.code + ' ' + item.name + ' ' + item.type;
           }));
         };
       });
     },
-    select: function (event, ui) {
+    select: (event, ui) => {
       if (ui.item.value == 'No matches found.') {
         event.preventDefault();
       } else {
