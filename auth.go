@@ -89,7 +89,7 @@ func setting(c *gin.Context) {
 	db, err := sql.Open("sqlite3", sqlite)
 	if err != nil {
 		log.Printf("Failed to connect to database: %v", err)
-		c.HTML(200, "login.html", gin.H{"error": "Failed to connect to database."})
+		c.HTML(200, "setting.html", gin.H{"error": "Failed to connect to database."})
 		return
 	}
 	defer db.Close()
@@ -104,7 +104,7 @@ func setting(c *gin.Context) {
 	err = db.QueryRow("SELECT password FROM user WHERE id = ?", userID).Scan(&oldPassword)
 	if err != nil {
 		log.Println(err)
-		c.HTML(200, "login.html", gin.H{"error": "Failed to get current user password."})
+		c.HTML(200, "setting.html", gin.H{"error": "Failed to get current user password."})
 		return
 	}
 
@@ -130,21 +130,23 @@ func setting(c *gin.Context) {
 		newPassword, err := bcrypt.GenerateFromPassword([]byte(password1), bcrypt.MinCost)
 		if err != nil {
 			log.Println(err)
-			c.HTML(200, "login.html", gin.H{"error": "Failed to encrypt new password."})
+			c.HTML(200, "setting.html", gin.H{"error": "Failed to encrypt new password."})
 			return
 		}
 		_, err = db.Exec("UPDATE user SET password = ? WHERE id = ?", string(newPassword), userID)
 		if err != nil {
 			log.Println(err)
-			c.HTML(200, "login.html", gin.H{"error": "Failed to update new password."})
+			c.HTML(200, "setting.html", gin.H{"error": "Failed to update new password."})
 			return
 		}
 		session.Clear()
 		if err := session.Save(); err != nil {
 			log.Println(err)
-			c.HTML(200, "login.html", gin.H{"error": "Failed to save session."})
+			c.HTML(200, "setting.html", gin.H{"error": "Failed to save session."})
 			return
 		}
+		c.Redirect(302, "/")
+		return
 	}
 	c.HTML(200, "setting.html", gin.H{"error": message})
 }
