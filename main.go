@@ -30,7 +30,8 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to get self path: %v", err)
 	}
-	sqlite = joinPath(dir(self), "instance", "access.log")
+	os.MkdirAll(joinPath(dir(self), "instance"), 0755)
+	sqlite = joinPath(dir(self), "instance", "mystocks.db")
 }
 
 func main() {

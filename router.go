@@ -38,6 +38,11 @@ func myStocks(c *gin.Context) {
 
 	rows, err := db.Query(`SELECT idx, code FROM stock WHERE user_id = ? ORDER BY seq`, userID)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such table") {
+			restore("")
+			c.String(501, "")
+			return
+		}
 		log.Printf("Failed to get all stocks: %v", err)
 		c.String(500, "")
 		return
@@ -58,29 +63,31 @@ func myStocks(c *gin.Context) {
 }
 
 func indices(c *gin.Context) {
-	indices := []stock{&sse{code: "000001"}, &szse{code: "399001"}, &szse{code: "399006"}, &szse{code: "399005"}}
-	c.JSON(200, doGetRealtimes(indices))
+	indices := doGetRealtimes([]stock{&sse{code: "000001"}, &szse{code: "399001"}, &szse{code: "399006"}, &szse{code: "399005"}})
+	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中小板": indices[3]})
 }
 
 func getStock(c *gin.Context) {
-	index := c.Param("index")
-	code := c.Param("code ")
-	q := c.Param("q")
+	index := c.Query("index")
+	code := c.Query("code")
+	q := c.Query("q")
 
 	stock := initStock(index, code)
 
 	if q == "realtime" {
-		c.JSON(200, stock.realtime())
+		realtime := stock.realtime()
+		c.JSON(200, realtime)
 		return
 	} else if q == "chart" {
-		c.JSON(200, stock.chart())
+		chart := stock.chart()
+		c.JSON(200, chart)
 		return
 	}
 	c.String(400, "")
 }
 
 func getSuggest(c *gin.Context) {
-	keyword := c.Param("keyword")
+	keyword := c.Query("keyword")
 	sse := sseSuggest(keyword)
 	szse := szseSuggest(keyword)
 	c.JSON(200, append(sse, szse...))

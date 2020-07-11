@@ -13,5 +13,6 @@ require (
 	github.com/sunshineplan/utils v0.0.0-20200625024123-88d74af4ca23
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/text v0.3.2
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 )

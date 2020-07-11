@@ -1,11 +1,16 @@
 {{ define "title" }}Setting{{ end }}
 
+{{ define "search" }}{{ end }}
+
 {{ define "header" }}
 <h3>Setting</h3>
 <hr>
 {{ end }}
 
 {{ define "content" }}
+{{ if ne .error "" }}
+<div class='alert alert-danger d-inline-flex'>{{ .error }}</div>
+{{ end }}
 <form style='margin-left:120px;width:250px;' method='post'>
   <div class='form-group'>
     <label for='password'>Current Password</label>

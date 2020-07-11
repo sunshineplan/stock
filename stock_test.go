@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSSE(t *testing.T) {
 	s := sse{code: "600309"}

@@ -2,13 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 const (
@@ -19,11 +23,6 @@ const (
 type stock interface {
 	realtime() map[string]interface{}
 	chart() map[string]interface{}
-}
-
-type chartPoint struct {
-	x string
-	y float64
 }
 
 type sse struct {
@@ -39,7 +38,7 @@ type sse struct {
 	open      float64
 	last      float64
 	update    string
-	chartData []chartPoint
+	chartData []map[string]interface{}
 }
 
 func (s *sse) getRealtime() {
@@ -61,23 +60,29 @@ func (s *sse) getRealtime() {
 		log.Printf("ReadAll body Error: %v", err)
 		return
 	}
+	d := simplifiedchinese.GBK.NewDecoder()
+	utf8data, err := d.Bytes(data)
+	if err != nil {
+		log.Printf("Fail to convert gb2312: %v", err)
+		return
+	}
 	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
+	err = json.Unmarshal(utf8data, &jsonData)
 	if err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
-	d := jsonData.(map[string]interface{})
-	snap := d["snap"].([]interface{})
-	s.name = strings.TrimSpace(snap[0].(string))
+	jd := jsonData.(map[string]interface{})
+	snap := jd["snap"].([]interface{})
+	s.name = snap[0].(string)
 	s.now = snap[5].(float64)
 	s.change = snap[6].(float64)
-	s.percent = snap[7].(string) + "%"
+	s.percent = fmt.Sprintf("%.3f", snap[7].(float64)) + "%"
 	s.high = snap[3].(float64)
 	s.low = snap[4].(float64)
 	s.open = snap[2].(float64)
 	s.last = snap[1].(float64)
-	s.update = d["date"].(string) + "." + d["time"].(string)
+	s.update = fmt.Sprintf("%.0f.%.0f", jd["date"].(float64), jd["time"].(float64))
 	var sell5 [][]float64
 	for i := 0; i < len(snap[len(snap)-1].([]interface{})); i += 2 {
 		sell5 = append(sell5, []float64{snap[len(snap)-1].([]interface{})[i].(float64), snap[len(snap)-1].([]interface{})[i+1].(float64)})
@@ -115,6 +120,7 @@ func (s *sse) getChart() {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
+	s.last = jsonData.(map[string]interface{})["prev_close"].(float64)
 	line := jsonData.(map[string]interface{})["line"].([]interface{})
 	t := time.Now()
 	var sessions []string
@@ -124,9 +130,9 @@ func (s *sse) getChart() {
 	for i := 0; i < 120; i++ {
 		sessions = append(sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
-	var chart []chartPoint
+	var chart []map[string]interface{}
 	for i, v := range line {
-		chart = append(chart, chartPoint{x: sessions[i], y: v.([]interface{})[0].(float64)})
+		chart = append(chart, map[string]interface{}{"x": sessions[i], "y": v.([]interface{})[0].(float64)})
 	}
 	s.chartData = chart
 }
@@ -207,14 +213,14 @@ type szse struct {
 	now       float64
 	change    float64
 	percent   string
-	sell5     [][]float64
-	buy5      [][]float64
+	sell5     [][]interface{}
+	buy5      [][]interface{}
 	high      float64
 	low       float64
 	open      float64
 	last      float64
 	update    string
-	chartData []chartPoint
+	chartData []map[string]interface{}
 }
 
 func (s *szse) getRealtime() {
@@ -242,34 +248,36 @@ func (s *szse) getRealtime() {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
-	if jsonData.(map[string]interface{})["code"] != 0 {
+	if jsonData.(map[string]interface{})["code"] != "0" {
 		log.Printf("Data code not equal zero: %v", err)
 		return
 	}
 	d := jsonData.(map[string]interface{})["data"].(map[string]interface{})
 	s.name = d["name"].(string)
-	s.now = d["now"].(float64)
-	s.change = d["delta"].(float64)
+	s.now, _ = strconv.ParseFloat(d["now"].(string), 64)
+	s.change, _ = strconv.ParseFloat(d["delta"].(string), 64)
 	s.percent = d["deltaPercent"].(string) + "%"
-	s.high = d["high"].(float64)
-	s.low = d["low"].(float64)
-	s.open = d["open"].(float64)
-	s.last = d["close"].(float64)
+	s.high, _ = strconv.ParseFloat(d["high"].(string), 64)
+	s.low, _ = strconv.ParseFloat(d["low"].(string), 64)
+	s.open, _ = strconv.ParseFloat(d["open"].(string), 64)
+	s.last, _ = strconv.ParseFloat(d["close"].(string), 64)
 	s.update = d["marketTime"].(string)
-	var sell5 [][]float64
-	var buy5 [][]float64
-	for i, v := range d["sellbuy5"].([]interface{}) {
-		if i > 5 {
-			sell5 = append(sell5, []float64{v.(map[string]interface{})["price"].(float64), v.(map[string]interface{})["volume"].(float64)})
-		} else {
-			buy5 = append(buy5, []float64{v.(map[string]interface{})["price"].(float64), v.(map[string]interface{})["volume"].(float64)})
+	var sell5 [][]interface{}
+	var buy5 [][]interface{}
+	if d["sellbuy5"] != nil {
+		for i, v := range d["sellbuy5"].([]interface{}) {
+			if i > 5 {
+				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
+			} else {
+				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
+			}
 		}
 	}
 	s.sell5 = sell5
 	s.buy5 = buy5
-	var chart []chartPoint
+	var chart []map[string]interface{}
 	for _, v := range d["picupdata"].([]interface{}) {
-		chart = append(chart, chartPoint{x: v.([]interface{})[0].(string), y: v.([]interface{})[1].(float64)})
+		chart = append(chart, map[string]interface{}{"x": v.([]interface{})[0].(string), "y": v.([]interface{})[1].(string)})
 	}
 	s.chartData = chart
 }

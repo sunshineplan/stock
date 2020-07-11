@@ -77,7 +77,7 @@ func run() {
 	auth.POST("/setting", authRequired, setting)
 
 	base := router.Group("/")
-	base.GET("/:index/:code", showStock)
+	base.GET("/stock/:index/:code", showStock)
 	base.GET("/mystocks", myStocks)
 	base.GET("/indices", indices)
 	base.GET("/get", getStock)

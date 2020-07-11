@@ -3,7 +3,7 @@ function update_indices(ct = false) {
     $.getJSON('/indices', data => {
       $.each(data, (index, json) => {
         if (json !== null) {
-          $('#' + index).prop('href', '/' + json.index + '/' + json.code);
+          $('#' + index).prop('href', '/stock/' + json.index + '/' + json.code);
           var change = parseFloat(json.change);
           if (change > 0) {
             $('#' + index + ' .now').text(json.now).css('color', 'red');
@@ -31,7 +31,7 @@ function my_stocks(ct = false) {
       $.each(json, (i, item) => {
         if (item !== null && item.name != 'n/a') {
           var last = parseFloat(item.last);
-          var href = '"/' + item.index + '/' + item.code + '"';
+          var href = '"/stock/' + item.index + '/' + item.code + '"';
           var $tr = $("<tr onclick='window.location=" + href + ";'>").append(
             $('<td>').text(item.index),
             $('<td>').text(item.code),
@@ -54,7 +54,7 @@ function my_stocks(ct = false) {
           $tr.append($('<td>').text(item.last));
           $tr.appendTo('#mystocks');
         } else if (item.name == 'n/a') {
-          var href = '"/' + item.index + '/' + item.code + '"';
+          var href = '"/stock/' + item.index + '/' + item.code + '"';
           $("<tr onclick='window.location=" + href + ";'>").append(
             $('<td>').text(item.index),
             $('<td>').text(item.code),
@@ -69,7 +69,7 @@ function my_stocks(ct = false) {
           ).appendTo('#mystocks');
         };
       });
-    });
+    }).fail(jqXHR => { if (jqXHR.status == 501) window.location = '/'; });
   };
 };
 
