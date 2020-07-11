@@ -31,16 +31,17 @@ func loadTemplates() multitemplate.Renderer {
 }
 
 func run() {
-	f, err := os.OpenFile(*logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
-	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+	if *logPath != "" {
+		f, err := os.OpenFile(*logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
+		if err != nil {
+			log.Fatalf("Failed to open log file: %v", err)
+		}
+		gin.DefaultWriter = io.MultiWriter(f)
+		log.SetOutput(gin.DefaultWriter)
 	}
-	gin.DefaultWriter = io.MultiWriter(f)
-	log.SetOutput(gin.DefaultWriter)
 
 	secret := make([]byte, 16)
-	_, err = rand.Read(secret)
-	if err != nil {
+	if _, err := rand.Read(secret); err != nil {
 		log.Fatalf("Failed to get secret: %v", err)
 	}
 
@@ -111,15 +112,14 @@ func run() {
 				log.Printf("Failed to close listener: %v", err)
 			}
 			if _, err := os.Stat(*unix); err == nil {
-				err = os.Remove(*unix)
-				if err != nil {
+				if err := os.Remove(*unix); err != nil {
 					log.Printf("Failed to remove socket file: %v", err)
 				}
 			}
 			close(idleConnsClosed)
 		}()
 
-		if err = os.Chmod(*unix, 0666); err != nil {
+		if err := os.Chmod(*unix, 0666); err != nil {
 			log.Fatalf("Failed to chmod socket file: %v", err)
 		}
 

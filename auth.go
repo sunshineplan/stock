@@ -26,10 +26,6 @@ func authRequired(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	session := sessions.Default(c)
-	username := strings.TrimSpace(strings.ToLower(c.PostForm("username")))
-	password := c.PostForm("password")
-
 	db, err := sql.Open("sqlite3", sqlite)
 	if err != nil {
 		log.Printf("Failed to connect to database: %v", err)
@@ -37,10 +33,14 @@ func login(c *gin.Context) {
 		return
 	}
 	defer db.Close()
-	user := new(user)
-	err = db.QueryRow("SELECT id, username, password FROM user WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password)
+
+	session := sessions.Default(c)
+	username := strings.TrimSpace(strings.ToLower(c.PostForm("username")))
+	password := c.PostForm("password")
+
+	var user user
 	var message string
-	if err != nil {
+	if err := db.QueryRow("SELECT id, username, password FROM user WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password); err != nil {
 		if strings.Contains(err.Error(), "doesn't exist") {
 			restore("")
 			c.HTML(200, "login.html", gin.H{"error": "Detected first time running. Initialized the database."})
@@ -53,7 +53,7 @@ func login(c *gin.Context) {
 			message = "Critical Error! Please contact your system administrator."
 		}
 	} else {
-		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 			if (strings.Contains(err.Error(), "too short") && user.Password != password) || strings.Contains(err.Error(), "is not") {
 				message = "Incorrect password"
 			} else if user.Password != password {
@@ -93,6 +93,7 @@ func setting(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
@@ -101,8 +102,7 @@ func setting(c *gin.Context) {
 	password2 := c.PostForm("password2")
 
 	var oldPassword string
-	err = db.QueryRow("SELECT password FROM user WHERE id = ?", userID).Scan(&oldPassword)
-	if err != nil {
+	if err := db.QueryRow("SELECT password FROM user WHERE id = ?", userID).Scan(&oldPassword); err != nil {
 		log.Println(err)
 		c.HTML(200, "setting.html", gin.H{"error": "Failed to get current user password."})
 		return
@@ -133,8 +133,7 @@ func setting(c *gin.Context) {
 			c.HTML(200, "setting.html", gin.H{"error": "Failed to encrypt new password."})
 			return
 		}
-		_, err = db.Exec("UPDATE user SET password = ? WHERE id = ?", string(newPassword), userID)
-		if err != nil {
+		if _, err := db.Exec("UPDATE user SET password = ? WHERE id = ?", string(newPassword), userID); err != nil {
 			log.Println(err)
 			c.HTML(200, "setting.html", gin.H{"error": "Failed to update new password."})
 			return

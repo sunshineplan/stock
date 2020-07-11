@@ -31,9 +31,9 @@ func myStocks(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
-
 	if userID == nil {
 		userID = 0
 	}
@@ -103,6 +103,7 @@ func star(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 	refer := strings.Split(c.Request.Referer(), "/")
@@ -111,8 +112,7 @@ func star(c *gin.Context) {
 
 	if userID != nil {
 		var exist string
-		err = db.QueryRow("SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist)
-		if err == nil {
+		if err := db.QueryRow("SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist); err == nil {
 			c.String(200, "True")
 			return
 		}
@@ -128,6 +128,7 @@ func doStar(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 	refer := strings.Split(c.Request.Referer(), "/")
@@ -137,15 +138,13 @@ func doStar(c *gin.Context) {
 
 	if userID != nil {
 		if action == "unstar" {
-			_, err = db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID)
-			if err != nil {
+			if _, err := db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID); err != nil {
 				log.Printf("Failed to unstar stock: %v", err)
 				c.String(500, "")
 				return
 			}
 		} else {
-			_, err = db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)", index, code, userID)
-			if err != nil {
+			if _, err := db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)", index, code, userID); err != nil {
 				log.Printf("Failed to star stock: %v", err)
 				c.String(500, "")
 				return
@@ -165,6 +164,7 @@ func reorder(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
@@ -173,16 +173,14 @@ func reorder(c *gin.Context) {
 
 	var origSeq, destSeq int
 
-	err = db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq)
-	if err != nil {
+	if err := db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq); err != nil {
 		log.Printf("Failed to scan orig seq: %v", err)
 		c.String(500, "")
 		return
 	}
 	if dest != "#TOP_POSITION#" {
 		d := strings.Split(dest, " ")
-		err = db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq)
-		if err != nil {
+		if err := db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq); err != nil {
 			log.Printf("Failed to scan dest seq: %v", err)
 			c.String(500, "")
 			return
@@ -202,8 +200,7 @@ func reorder(c *gin.Context) {
 		c.String(500, "")
 		return
 	}
-	_, err = db.Exec("UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID)
-	if err != nil {
+	if _, err := db.Exec("UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID); err != nil {
 		log.Printf("Failed to update orig seq: %v", err)
 		c.String(500, "")
 		return

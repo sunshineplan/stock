@@ -68,8 +68,7 @@ func (s *sse) getRealtime() {
 		return
 	}
 	var jsonData interface{}
-	err = json.Unmarshal(utf8data, &jsonData)
-	if err != nil {
+	if err := json.Unmarshal(utf8data, &jsonData); err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
@@ -115,8 +114,7 @@ func (s *sse) getChart() {
 		return
 	}
 	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
-	if err != nil {
+	if err := json.Unmarshal(data, &jsonData); err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
@@ -186,8 +184,7 @@ func sseSuggest(keyword string) (r []map[string]interface{}) {
 		return
 	}
 	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
-	if err != nil {
+	if err := json.Unmarshal(data, &jsonData); err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
@@ -241,13 +238,12 @@ func (s *szse) getRealtime() {
 		return
 	}
 	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
-	if err != nil {
+	if err := json.Unmarshal(data, &jsonData); err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}
 	if jsonData.(map[string]interface{})["code"] != "0" {
-		log.Printf("Data code not equal zero: %v", err)
+		log.Println("Data code not equal zero.")
 		return
 	}
 	d := jsonData.(map[string]interface{})["data"].(map[string]interface{})
@@ -328,8 +324,7 @@ func szseSuggest(keyword string) (r []map[string]interface{}) {
 		return
 	}
 	var jsonData interface{}
-	err = json.Unmarshal(data, &jsonData)
-	if err != nil {
+	if err := json.Unmarshal(data, &jsonData); err != nil {
 		log.Printf("Unmarshal json Error: %v", err)
 		return
 	}

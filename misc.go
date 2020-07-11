@@ -21,8 +21,8 @@ func addUser(username string) {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
-	_, err = db.Exec("INSERT INTO user(username) VALUES (?)", strings.ToLower(username))
-	if err != nil {
+
+	if _, err := db.Exec("INSERT INTO user(username) VALUES (?)", strings.ToLower(username)); err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") {
 			log.Fatalf("Username %s already exists.", strings.ToLower(username))
 		} else {
@@ -39,6 +39,7 @@ func deleteUser(username string) {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+
 	res, err := db.Exec("DELETE FROM user WHERE username=?", strings.ToLower(username))
 	if err != nil {
 		log.Fatalf("Failed to delete user: %v", err)
@@ -58,20 +59,18 @@ func backup() {
 		log.Fatalf("Failed to get mystocks_backup metadata: %v", err)
 	}
 	var mailSetting mail.Setting
-	err = json.Unmarshal(m, &mailSetting)
-	if err != nil {
+	if err := json.Unmarshal(m, &mailSetting); err != nil {
 		log.Fatalf("Failed to unmarshal json: %v", err)
 	}
 
 	file := dump()
 	defer os.Remove(file)
-	err = mail.SendMail(
+	if err := mail.SendMail(
 		&mailSetting,
 		fmt.Sprintf("My stocks Backup-%s", time.Now().Format("20060102")),
 		"",
 		&mail.Attachment{FilePath: file, Filename: "database"},
-	)
-	if err != nil {
+	); err != nil {
 		log.Fatalf("Failed to send mail: %v", err)
 	}
 	log.Println("Done!")
