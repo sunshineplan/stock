@@ -5,20 +5,15 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
-	"strings"
 )
 
-var sqlitePy = joinPath(dir(self), "scripts/sqlite.py")
-
 func execScript(file string) {
-	var cmd, arg string
+	var cmd string
 	switch OS {
 	case "windows":
-		cmd = "cmd"
-		arg = "/c"
+		cmd = "python"
 	case "linux":
-		cmd = "bash"
-		arg = "-c"
+		cmd = "python3"
 	default:
 		log.Fatal("Unsupported operating system.")
 	}
@@ -29,7 +24,7 @@ func execScript(file string) {
 	args = append(args, sqlite)
 	args = append(args, file)
 
-	c := exec.Command(cmd, arg, strings.Join(args, " "))
+	c := exec.Command(cmd, args...)
 	var stderr bytes.Buffer
 	c.Stderr = &stderr
 	if err := c.Run(); err != nil {
@@ -44,14 +39,12 @@ func dump() string {
 	}
 	tmpfile.Close()
 
-	var cmd, arg string
+	var cmd string
 	switch OS {
 	case "windows":
-		cmd = "cmd"
-		arg = "/c"
+		cmd = "python"
 	case "linux":
-		cmd = "bash"
-		arg = "-c"
+		cmd = "python3"
 	default:
 		log.Fatal("Unsupported operating system.")
 	}
@@ -62,10 +55,10 @@ func dump() string {
 	args = append(args, sqlite)
 	args = append(args, tmpfile.Name())
 
-	dump := exec.Command(cmd, arg, strings.Join(args, " "))
+	c := exec.Command(cmd, args...)
 	var stderr bytes.Buffer
-	dump.Stderr = &stderr
-	if err := dump.Run(); err != nil {
+	c.Stderr = &stderr
+	if err := c.Run(); err != nil {
 		log.Fatalf("Failed to run backup command: %s\n%v", stderr.String(), err)
 	}
 	return tmpfile.Name()

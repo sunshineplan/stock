@@ -28,6 +28,8 @@ def main():
         restore(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == 'backup':
         backup(sys.argv[2], sys.argv[3])
+    else:
+        os._exit(1)
 
 
 if __name__ == '__main__':
