@@ -83,15 +83,12 @@ func (s *sse) getRealtime() {
 	s.open = snap[2].(float64)
 	s.last = snap[1].(float64)
 	s.update = fmt.Sprintf("%.0f.%.0f", jd["date"].(float64), jd["time"].(float64))
-	var sell5 [][]float64
+	var sell5, buy5 [][]float64
 	for i := 0; i < len(snap[len(snap)-1].([]interface{})); i += 2 {
 		sell5 = append(sell5, []float64{snap[len(snap)-1].([]interface{})[i].(float64), snap[len(snap)-1].([]interface{})[i+1].(float64)})
+		buy5 = append(buy5, []float64{snap[len(snap)-2].([]interface{})[i].(float64), snap[len(snap)-2].([]interface{})[i+1].(float64)})
 	}
 	s.sell5 = sell5
-	var buy5 [][]float64
-	for i := 0; i < len(snap[len(snap)-2].([]interface{})); i += 2 {
-		buy5 = append(buy5, []float64{snap[len(snap)-1].([]interface{})[i].(float64), snap[len(snap)-1].([]interface{})[i+1].(float64)})
-	}
 	s.buy5 = buy5
 }
 
@@ -260,7 +257,7 @@ func (s *szse) getRealtime() {
 	var buy5 [][]interface{}
 	if d["sellbuy5"] != nil {
 		for i, v := range d["sellbuy5"].([]interface{}) {
-			if i > 4 {
+			if i < 5 {
 				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
 			} else {
 				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
