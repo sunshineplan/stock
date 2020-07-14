@@ -245,12 +245,20 @@ func (s *szse) getRealtime() {
 	}
 	d := jsonData.(map[string]interface{})["data"].(map[string]interface{})
 	s.name = d["name"].(string)
-	s.now, _ = strconv.ParseFloat(d["now"].(string), 64)
+	if d["now"] != nil {
+		s.now, _ = strconv.ParseFloat(d["now"].(string), 64)
+	}
 	s.change, _ = strconv.ParseFloat(d["delta"].(string), 64)
 	s.percent = d["deltaPercent"].(string) + "%"
-	s.high, _ = strconv.ParseFloat(d["high"].(string), 64)
-	s.low, _ = strconv.ParseFloat(d["low"].(string), 64)
-	s.open, _ = strconv.ParseFloat(d["open"].(string), 64)
+	if d["high"] != nil {
+		s.high, _ = strconv.ParseFloat(d["high"].(string), 64)
+	}
+	if d["low"] != nil {
+		s.low, _ = strconv.ParseFloat(d["low"].(string), 64)
+	}
+	if d["open"] != nil {
+		s.open, _ = strconv.ParseFloat(d["open"].(string), 64)
+	}
 	s.last, _ = strconv.ParseFloat(d["close"].(string), 64)
 	s.update = d["marketTime"].(string)
 	var sell5 [][]interface{}
@@ -258,9 +266,9 @@ func (s *szse) getRealtime() {
 	if d["sellbuy5"] != nil {
 		for i, v := range d["sellbuy5"].([]interface{}) {
 			if i < 5 {
-				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
+				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"], v.(map[string]interface{})["volume"]})
 			} else {
-				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"].(string), v.(map[string]interface{})["volume"].(float64)})
+				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"], v.(map[string]interface{})["volume"]})
 			}
 		}
 	}
