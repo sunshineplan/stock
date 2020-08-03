@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sunshineplan/metadata"
 	"github.com/vharitonsky/iniflags"
 )

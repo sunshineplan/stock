@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/sunshineplan/metadata"
 	"github.com/sunshineplan/utils/mail"
 )
 
@@ -54,7 +52,7 @@ func deleteUser(username string) {
 
 func backup() {
 	log.Println("Start!")
-	m, err := metadata.Get("mystocks_backup", &metadataConfig)
+	m, err := metadataConfig.Get("mystocks_backup")
 	if err != nil {
 		log.Fatalf("Failed to get mystocks_backup metadata: %v", err)
 	}
