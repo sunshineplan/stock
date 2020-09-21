@@ -1,9 +1,58 @@
+var autocomplete = {
+  source: (request, response) => {
+    $.get('/suggest', {
+      keyword: request.term
+    }, data => {
+      if (!data)
+        response(['No matches found.']);
+      else
+        response($.map(data, item => {
+          return `${item.Index}:${item.Code} ${item.Name} ${item.Type}`;
+        }));
+    });
+  },
+  select: (event, ui) => {
+    if (ui.item.value == 'No matches found.')
+      event.preventDefault();
+    else {
+      var stock = ui.item.value.split(' ')[0].split(':');
+      window.location.replace(`/stock/${stock[0]}/${stock[1]}`);
+    };
+  },
+  minLength: 2,
+  autoFocus: true,
+  position: {
+    of: '.search'
+  }
+};
+
+var sortable = {
+  start: () => {
+    mystocks.abort();
+    clearInterval(reload);
+  },
+  stop: () => {
+    setTimeout(() => {
+      my_stocks();
+    }, 500);
+    reload = setInterval(() => {
+      my_stocks(ct = true);
+    }, 3000);
+  },
+  update: (event, ui) => reorder(ui)
+};
+
+$(document).on('click', '#login', () => {
+  if ($('#username').val() != 'admin')
+    localStorage.setItem('username', $('#username').val());
+});
+
 function update_indices(ct = false) {
   if (check_time() === 1 || ct === false) {
     $.getJSON('/indices', data => {
       $.each(data, (index, json) => {
         if (json !== null) {
-          $('#' + index).prop('href', '/stock/' + json.index + '/' + json.code);
+          $('#' + index).prop('href', `/stock/${json.index}/${json.code}`);
           var change = parseFloat(json.change);
           if (change > 0) {
             $('#' + index + ' .now').text(json.now).css('color', 'red');
@@ -31,8 +80,7 @@ function my_stocks(ct = false) {
       $.each(json, (i, item) => {
         if (item !== null && item.name != 'n/a') {
           var last = parseFloat(item.last);
-          var href = '"/stock/' + item.index + '/' + item.code + '"';
-          var $tr = $("<tr onclick='window.location=" + href + ";'>").append(
+          var $tr = $(`<tr onclick='window.location="/stock/${item.index}/${item.code}";'>`).append(
             $('<td>').text(item.index),
             $('<td>').text(item.code),
             $('<td>').text(item.name)
@@ -54,8 +102,7 @@ function my_stocks(ct = false) {
           $tr.append($('<td>').text(item.last));
           $tr.appendTo('#mystocks');
         } else if (item.name == 'n/a') {
-          var href = '"/stock/' + item.index + '/' + item.code + '"';
-          $("<tr onclick='window.location=" + href + ";'>").append(
+          $(`<tr onclick='window.location="/stock/${item.index}/${item.code}";'>`).append(
             $('<td>').text(item.index),
             $('<td>').text(item.code),
             $('<td>').text('n/a'),
@@ -83,7 +130,7 @@ function update_realtime(index, code, ct = false) {
   if (check_time() === 1 || ct === false) {
     $.getJSON('/get', { index: index, code: code, q: 'realtime' }, json => {
       if (json !== null && json.name != 'n/a') {
-        document.title = json.name + ' ' + json.now + ' ' + json.percent;
+        document.title = `${json.name} ${json.now} ${json.percent}`;
         var last = chart.data.datasets[0].data;
         if (last.length != 0) {
           last[last.length - 1].y = json.now;
@@ -103,7 +150,7 @@ function update_realtime(index, code, ct = false) {
               var color = 'green';
             };
             $.each(val, (i, item) => {
-              list = list + '<div class="buysell" style="color: ' + color + ';">' + item[0] + '-' + item[1] + '</div>';
+              list = `${list}<div class='buysell' style='color: ${color}'>${item[0]}-${item[1]}</div>`;
             });
             $('header .' + key).html(list);
           } else {
@@ -170,7 +217,7 @@ function check_time() {
   };
 };
 
-function reorder(event, ui) {
+function reorder(ui) {
   var orig, dest
   orig = ui.item.find('td')[0].textContent + ' ' + ui.item.find('td')[1].textContent;
   if (ui.item.prev().length != 0) {

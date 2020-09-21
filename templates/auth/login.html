@@ -4,7 +4,7 @@
 
 {{ define "header" }}
 <h3 class='d-flex justify-content-center'>Log In</h3>
-<p>
+<hr>
 {{ end }}
 
 {{ define "content" }}
@@ -25,15 +25,10 @@
     <label class='form-check-label' for='rememberme'>Remember Me</label>
   </div>
   <hr>
-  <input type='submit' id='submit' value='Log In' class='btn btn-primary login'>
+  <input type='submit' id='login' value='Log In' class='btn btn-primary login'>
 </form>
 <script>
-  $(() => {
-    username = localStorage.getItem('username');
-    if (username != null) $('#username').val(username);
-    $('#submit').click(() => {
-      if ($('#username').val() != 'admin') localStorage.setItem('username', $('#username').val());
-    });
-  });
+  username = localStorage.getItem('username');
+  if (username != null) $('#username').val(username);
 </script>
 {{ end }}

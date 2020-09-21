@@ -7,6 +7,7 @@
   </div>
   <input placeholder='Search Stock' id='autocomplete'>
 </div>
+<script>$("#autocomplete").autocomplete(autocomplete)</script>
 {{ end }}
 
 {{ define "header" }}{{ end }}
@@ -32,26 +33,10 @@
   </table>
 </div>
 <script>
-  $(() => {
-    $('#mystocks').sortable({
-      start: () => {
-        mystocks.abort();
-        clearInterval(reload);
-      },
-      stop: () => {
-        setTimeout(() => {
-          my_stocks();
-        }, 500);
-        reload = setInterval(() => {
-          my_stocks(ct = true);
-        }, 3000);
-      },
-      update: (event, ui) => reorder(event, ui)
-    });
-    my_stocks();
-    reload = setInterval(() => {
-      my_stocks(ct = true);
-    }, 3000);
-  });
+  $('#mystocks').sortable(sortable);
+  my_stocks();
+  reload = setInterval(() => {
+    my_stocks(ct = true);
+  }, 3000);
 </script>
 {{ end }}
