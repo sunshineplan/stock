@@ -1,3 +1,3 @@
 @echo off
 go build
-go build -ldflags "-H windowsgui" -o mystocks.exe
+go build -ldflags "-s -w -H windowsgui" -o mystocks.exe

@@ -64,8 +64,7 @@ func backup() {
 
 	file := dump()
 	defer os.Remove(file)
-	if err := mail.SendMail(
-		&mailSetting,
+	if err := mailSetting.Send(
 		fmt.Sprintf("My stocks Backup-%s", time.Now().Format("20060102")),
 		"",
 		&mail.Attachment{FilePath: file, Filename: "database"},
