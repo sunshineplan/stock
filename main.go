@@ -18,7 +18,7 @@ const OS = runtime.GOOS
 
 var metadataConfig metadata.Config
 
-var self, sqlite, sqlitePy string
+var self string
 var unix, host, port, logPath *string
 
 var (
@@ -30,7 +30,7 @@ func init() {
 	var err error
 	self, err = os.Executable()
 	if err != nil {
-		log.Fatalf("Failed to get self path: %v", err)
+		log.Fatalln("Failed to get self path:", err)
 	}
 	os.MkdirAll(joinPath(dir(self), "instance"), 0755)
 	sqlite = joinPath(dir(self), "instance", "mystocks.db")

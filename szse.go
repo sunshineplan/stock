@@ -12,116 +12,109 @@ import (
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 
 type szse struct {
-	code      string
-	name      string
-	now       float64
-	change    float64
-	percent   string
-	sell5     [][]interface{}
-	buy5      [][]interface{}
-	high      float64
-	low       float64
-	open      float64
-	last      float64
-	update    string
-	chartData []map[string]interface{}
+	Code     string
+	Name     string
+	Realtime realtime
+	Chart    chart
 }
 
 func (s *szse) getRealtime() {
-	var jsonData interface{}
+	var result struct {
+		Code string
+		Data struct {
+			Name         string
+			Close        string
+			Open         string
+			Now          string
+			High         string
+			Low          string
+			Delta        string
+			DeltaPercent string
+			MarketTime   string
+			Sellbuy5     []struct {
+				Price  string
+				Volume int
+			}
+			PicUpData [][]interface{}
+		}
+	}
 	if err := requests.GetWithClient(
-		"http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="+s.code, nil, client).JSON(&jsonData); err != nil {
+		"http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="+s.Code, nil, client).JSON(&result); err != nil {
 		log.Println("Failed to get szse:", err)
 		return
 	}
-	if jsonData.(map[string]interface{})["code"] != "0" {
+	if result.Code != "0" {
 		log.Println("Data code not equal zero.")
 		return
 	}
-	d := jsonData.(map[string]interface{})["data"].(map[string]interface{})
-	s.name = d["name"].(string)
-	if d["now"] != nil {
-		s.now, _ = strconv.ParseFloat(d["now"].(string), 64)
-	}
-	s.change, _ = strconv.ParseFloat(d["delta"].(string), 64)
-	s.percent = d["deltaPercent"].(string) + "%"
-	if d["high"] != nil {
-		s.high, _ = strconv.ParseFloat(d["high"].(string), 64)
-	}
-	if d["low"] != nil {
-		s.low, _ = strconv.ParseFloat(d["low"].(string), 64)
-	}
-	if d["open"] != nil {
-		s.open, _ = strconv.ParseFloat(d["open"].(string), 64)
-	}
-	s.last, _ = strconv.ParseFloat(d["close"].(string), 64)
-	s.update = d["marketTime"].(string)
+	s.Name = result.Data.Name
+	s.Realtime.now, _ = strconv.ParseFloat(result.Data.Now, 64)
+	s.Realtime.change, _ = strconv.ParseFloat(result.Data.Delta, 64)
+	s.Realtime.percent = result.Data.DeltaPercent + "%"
+	s.Realtime.high, _ = strconv.ParseFloat(result.Data.High, 64)
+	s.Realtime.low, _ = strconv.ParseFloat(result.Data.Low, 64)
+	s.Realtime.open, _ = strconv.ParseFloat(result.Data.Open, 64)
+	s.Realtime.last, _ = strconv.ParseFloat(result.Data.Close, 64)
+	s.Realtime.update = result.Data.MarketTime
 	var sell5 [][]interface{}
 	var buy5 [][]interface{}
-	if d["sellbuy5"] != nil {
-		for i, v := range d["sellbuy5"].([]interface{}) {
-			if i < 5 {
-				sell5 = append(sell5, []interface{}{v.(map[string]interface{})["price"], v.(map[string]interface{})["volume"]})
-			} else {
-				buy5 = append(buy5, []interface{}{v.(map[string]interface{})["price"], v.(map[string]interface{})["volume"]})
-			}
+	for i, v := range result.Data.Sellbuy5 {
+		if i < 5 {
+			sell5 = append(sell5, []interface{}{v.Price, v.Volume})
+		} else {
+			buy5 = append(buy5, []interface{}{v.Price, v.Volume})
 		}
 	}
-	s.sell5 = sell5
-	s.buy5 = buy5
-	var chart []map[string]interface{}
-	for _, v := range d["picupdata"].([]interface{}) {
-		chart = append(chart, map[string]interface{}{"x": v.([]interface{})[0].(string), "y": v.([]interface{})[1].(string)})
+	s.Realtime.sell5 = sell5
+	s.Realtime.buy5 = buy5
+	for _, i := range result.Data.PicUpData {
+		y, _ := strconv.ParseFloat(i[1].(string), 64)
+		s.Chart.data = append(s.Chart.data, point{X: i[0].(string), Y: y})
 	}
-	s.chartData = chart
 }
 
 func (s *szse) realtime() map[string]interface{} {
 	s.getRealtime()
-	var r = map[string]interface{}{
+	return map[string]interface{}{
 		"index":   "SZSE",
-		"code":    s.code,
-		"name":    s.name,
-		"now":     s.now,
-		"change":  s.change,
-		"percent": s.percent,
-		"sell5":   s.sell5,
-		"buy5":    s.buy5,
-		"high":    s.high,
-		"low":     s.low,
-		"open":    s.open,
-		"last":    s.last,
-		"update":  s.update,
+		"code":    s.Code,
+		"name":    s.Name,
+		"now":     s.Realtime.now,
+		"change":  s.Realtime.change,
+		"percent": s.Realtime.percent,
+		"sell5":   s.Realtime.sell5,
+		"buy5":    s.Realtime.buy5,
+		"high":    s.Realtime.high,
+		"low":     s.Realtime.low,
+		"open":    s.Realtime.open,
+		"last":    s.Realtime.last,
+		"update":  s.Realtime.update,
 	}
-	return r
 }
 
 func (s *szse) chart() map[string]interface{} {
 	s.getRealtime()
-	var r = map[string]interface{}{
-		"last":  s.last,
-		"chart": s.chartData,
+	return map[string]interface{}{
+		"last":  s.Realtime.last,
+		"chart": s.Chart.data,
 	}
-	return r
 }
 
-func szseSuggest(keyword string) (r []map[string]interface{}) {
-	var jsonData interface{}
+func szseSuggest(keyword string) (suggests []suggest) {
+	var result []struct{ WordB, Value, Type string }
 	if err := requests.PostWithClient(
-		"http://www.szse.cn/api/search/suggest?keyword="+keyword, nil, nil, client).JSON(&jsonData); err != nil {
+		"http://www.szse.cn/api/search/suggest?keyword="+keyword, nil, nil, client).JSON(&result); err != nil {
 		log.Println("Failed to get szse suggest:", err)
 		return
 	}
-	suggest := jsonData.([]interface{})
 	re := regexp.MustCompile(szsePattern)
-	for _, v := range suggest {
-		code := strings.ReplaceAll(strings.ReplaceAll(v.(map[string]interface{})["wordB"].(string), `<span class="keyword">`, ""), "</span>", "")
-		if re.MatchString(code) {
-			r = append(r, map[string]interface{}{
-				"category": "SZSE",
-				"code":     code,
-				"name":     v.(map[string]interface{})["value"],
-				"type":     v.(map[string]interface{})["type"],
+	for _, i := range result {
+		if code := strings.ReplaceAll(strings.ReplaceAll(i.WordB, `<span class="keyword">`, ""), "</span>", ""); re.MatchString(code) {
+			suggests = append(suggests, suggest{
+				Index: "SZSE",
+				Code:  code,
+				Name:  i.Value,
+				Type:  i.Type,
 			})
 		}
 	}

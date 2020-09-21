@@ -14,17 +14,46 @@ type stock interface {
 	chart() map[string]interface{}
 }
 
+type realtime struct {
+	now     float64
+	change  float64
+	percent string
+	sell5   [][]interface{}
+	buy5    [][]interface{}
+	high    float64
+	low     float64
+	open    float64
+	last    float64
+	update  string
+}
+
+type chart struct {
+	data []point
+}
+
+type point struct {
+	X string  `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type suggest struct {
+	Index string
+	Code  string
+	Name  string
+	Type  string
+}
+
 func initStock(index, code string) (s stock) {
 	switch index {
 	case "SSE":
 		re := regexp.MustCompile(ssePattern)
 		if re.MatchString(code) {
-			s = &sse{code: code}
+			s = &sse{Code: code}
 		}
 	case "SZSE":
 		re := regexp.MustCompile(szsePattern)
 		if re.MatchString(code) {
-			s = &szse{code: code}
+			s = &szse{Code: code}
 		}
 	}
 	return

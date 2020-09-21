@@ -14,23 +14,14 @@ import (
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 
 type sse struct {
-	code      string
-	name      string
-	now       float64
-	change    float64
-	percent   string
-	sell5     [][]float64
-	buy5      [][]float64
-	high      float64
-	low       float64
-	open      float64
-	last      float64
-	update    string
-	chartData []map[string]interface{}
+	Code     string
+	Name     string
+	Realtime realtime
+	Chart    chart
 }
 
 func (s *sse) getRealtime() {
-	resp := requests.GetWithClient("http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.code, nil, client)
+	resp := requests.GetWithClient("http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code, nil, client)
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
 		return
@@ -41,101 +32,104 @@ func (s *sse) getRealtime() {
 		log.Println("Fail to convert gb2312:", err)
 		return
 	}
-	var jsonData interface{}
-	if err := json.Unmarshal(utf8data, &jsonData); err != nil {
+	var r struct {
+		Date int
+		Time int
+		Snap []interface{}
+	}
+	if err := json.Unmarshal(utf8data, &r); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return
 	}
-	jd := jsonData.(map[string]interface{})
-	snap := jd["snap"].([]interface{})
-	s.name = snap[0].(string)
-	s.now = snap[5].(float64)
-	s.change = snap[6].(float64)
-	s.percent = fmt.Sprintf("%.2f", snap[7].(float64)) + "%"
-	s.high = snap[3].(float64)
-	s.low = snap[4].(float64)
-	s.open = snap[2].(float64)
-	s.last = snap[1].(float64)
-	s.update = fmt.Sprintf("%.0f.%.0f", jd["date"].(float64), jd["time"].(float64))
-	var sell5, buy5 [][]float64
-	for i := 0; i < len(snap[len(snap)-1].([]interface{})); i += 2 {
-		sell5 = append(sell5, []float64{snap[len(snap)-1].([]interface{})[i].(float64), snap[len(snap)-1].([]interface{})[i+1].(float64)})
-		buy5 = append(buy5, []float64{snap[len(snap)-2].([]interface{})[i].(float64), snap[len(snap)-2].([]interface{})[i+1].(float64)})
+	s.Name = r.Snap[0].(string)
+	s.Realtime.now = r.Snap[5].(float64)
+	s.Realtime.change = r.Snap[6].(float64)
+	s.Realtime.percent = fmt.Sprintf("%.2f", r.Snap[7].(float64)) + "%"
+	s.Realtime.high = r.Snap[3].(float64)
+	s.Realtime.low = r.Snap[4].(float64)
+	s.Realtime.open = r.Snap[2].(float64)
+	s.Realtime.last = r.Snap[1].(float64)
+	s.Realtime.update = fmt.Sprintf("%d.%d", r.Date, r.Time)
+	var sell5, buy5 [][]interface{}
+	for i := 0; i < len(r.Snap[len(r.Snap)-1].([]interface{})); i += 2 {
+		sell5 = append(sell5, []interface{}{r.Snap[len(r.Snap)-1].([]interface{})[i], r.Snap[len(r.Snap)-1].([]interface{})[i+1]})
+		buy5 = append(buy5, []interface{}{r.Snap[len(r.Snap)-2].([]interface{})[i], r.Snap[len(r.Snap)-2].([]interface{})[i+1]})
 	}
-	s.sell5 = sell5
-	s.buy5 = buy5
+	s.Realtime.sell5 = sell5
+	s.Realtime.buy5 = buy5
 }
 
 func (s *sse) getChart() {
-	var jsonData interface{}
+	var r struct {
+		PrevClose float64 `json:"prev_close"`
+		Line      [][]interface{}
+	}
 	if err := requests.GetWithClient(
-		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.code, nil, client).JSON(&jsonData); err != nil {
+		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.Code, nil, client).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
 		return
 	}
-	s.last = jsonData.(map[string]interface{})["prev_close"].(float64)
-	line := jsonData.(map[string]interface{})["line"].([]interface{})
+	s.Realtime.last = r.PrevClose
 	t := time.Now()
 	var sessions []string
 	for i := 0; i < 121; i++ {
-		sessions = append(sessions, time.Date(t.Year(), t.Month(), t.Day(), 9, 30, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
+		sessions = append(
+			sessions, time.Date(t.Year(), t.Month(), t.Day(), 9, 30, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
 	for i := 0; i < 120; i++ {
-		sessions = append(sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
+		sessions = append(
+			sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
-	var chart []map[string]interface{}
-	for i, v := range line {
-		chart = append(chart, map[string]interface{}{"x": sessions[i], "y": v.([]interface{})[0].(float64)})
+	for i, v := range r.Line {
+		s.Chart.data = append(s.Chart.data, point{X: sessions[i], Y: v[0].(float64)})
 	}
-	s.chartData = chart
 }
 
 func (s *sse) realtime() map[string]interface{} {
 	s.getRealtime()
-	var r = map[string]interface{}{
+	return map[string]interface{}{
 		"index":   "SSE",
-		"code":    s.code,
-		"name":    s.name,
-		"now":     s.now,
-		"change":  s.change,
-		"percent": s.percent,
-		"sell5":   s.sell5,
-		"buy5":    s.buy5,
-		"high":    s.high,
-		"low":     s.low,
-		"open":    s.open,
-		"last":    s.last,
-		"update":  s.update,
+		"code":    s.Code,
+		"name":    s.Name,
+		"now":     s.Realtime.now,
+		"change":  s.Realtime.change,
+		"percent": s.Realtime.percent,
+		"sell5":   s.Realtime.sell5,
+		"buy5":    s.Realtime.buy5,
+		"high":    s.Realtime.high,
+		"low":     s.Realtime.low,
+		"open":    s.Realtime.open,
+		"last":    s.Realtime.last,
+		"update":  s.Realtime.update,
 	}
-	return r
 }
 
 func (s *sse) chart() map[string]interface{} {
 	s.getChart()
-	var r = map[string]interface{}{
-		"last":  s.last,
-		"chart": s.chartData,
+	return map[string]interface{}{
+		"last":  s.Realtime.last,
+		"chart": s.Chart.data,
 	}
-	return r
 }
 
-func sseSuggest(keyword string) (r []map[string]interface{}) {
+func sseSuggest(keyword string) (suggests []suggest) {
+	var result struct {
+		Data []struct{ Category, Code, Word string }
+	}
 	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=" + keyword
 	headers := map[string]string{"Referer": "http://www.sse.com.cn/"}
-	var jsonData interface{}
-	if err := requests.GetWithClient(url, headers, client).JSON(&jsonData); err != nil {
+	if err := requests.GetWithClient(url, headers, client).JSON(&result); err != nil {
 		log.Println("Failed to get sse suggest:", err)
 		return
 	}
-	suggest := jsonData.(map[string]interface{})["data"].([]interface{})
 	re := regexp.MustCompile(ssePattern)
-	for _, v := range suggest {
-		if re.MatchString(v.(map[string]interface{})["CODE"].(string)) {
-			r = append(r, map[string]interface{}{
-				"category": "SSE",
-				"code":     v.(map[string]interface{})["CODE"],
-				"name":     v.(map[string]interface{})["WORD"],
-				"type":     v.(map[string]interface{})["CATEGORY"],
+	for _, i := range result.Data {
+		if re.MatchString(i.Code) {
+			suggests = append(suggests, suggest{
+				Index: "SSE",
+				Code:  i.Code,
+				Name:  i.Word,
+				Type:  i.Category,
 			})
 		}
 	}

@@ -86,7 +86,7 @@
           response(['No matches found.']);
         } else {
           response($.map(data, item => {
-            return item.category + ':' + item.code + ' ' + item.name + ' ' + item.type;
+            return item.Index + ':' + item.Code + ' ' + item.Name + ' ' + item.Type;
           }));
         };
       });

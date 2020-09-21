@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strings"
 
@@ -23,9 +22,9 @@ func showStock(c *gin.Context) {
 }
 
 func myStocks(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.String(503, "")
 		return
 	}
@@ -44,7 +43,7 @@ func myStocks(c *gin.Context) {
 			c.String(501, "")
 			return
 		}
-		log.Printf("Failed to get all stocks: %v", err)
+		log.Println("Failed to get all stocks:", err)
 		c.String(500, "")
 		return
 	}
@@ -53,7 +52,7 @@ func myStocks(c *gin.Context) {
 	for rows.Next() {
 		var index, code string
 		if err := rows.Scan(&index, &code); err != nil {
-			log.Printf("Failed to scan all stocks: %v", err)
+			log.Println("Failed to scan all stocks:", err)
 			c.String(500, "")
 			return
 		}
@@ -64,7 +63,7 @@ func myStocks(c *gin.Context) {
 }
 
 func indices(c *gin.Context) {
-	indices := doGetRealtimes([]stock{&sse{code: "000001"}, &szse{code: "399001"}, &szse{code: "399006"}, &szse{code: "399005"}})
+	indices := doGetRealtimes([]stock{&sse{Code: "000001"}, &szse{Code: "399001"}, &szse{Code: "399006"}, &szse{Code: "399005"}})
 	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中小板": indices[3]})
 }
 
@@ -95,9 +94,9 @@ func getSuggest(c *gin.Context) {
 }
 
 func star(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.String(503, "")
 		return
 	}
@@ -111,7 +110,8 @@ func star(c *gin.Context) {
 
 	if userID != nil {
 		var exist string
-		if err := db.QueryRow("SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist); err == nil {
+		if err := db.QueryRow(
+			"SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist); err == nil {
 			c.String(200, "True")
 			return
 		}
@@ -120,9 +120,9 @@ func star(c *gin.Context) {
 }
 
 func doStar(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.String(503, "")
 		return
 	}
@@ -138,13 +138,13 @@ func doStar(c *gin.Context) {
 	if userID != nil {
 		if action == "unstar" {
 			if _, err := db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID); err != nil {
-				log.Printf("Failed to unstar stock: %v", err)
+				log.Println("Failed to unstar stock:", err)
 				c.String(500, "")
 				return
 			}
 		} else {
 			if _, err := db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)", index, code, userID); err != nil {
-				log.Printf("Failed to star stock: %v", err)
+				log.Println("Failed to star stock:", err)
 				c.String(500, "")
 				return
 			}
@@ -156,9 +156,9 @@ func doStar(c *gin.Context) {
 }
 
 func reorder(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.String(503, "")
 		return
 	}
@@ -172,15 +172,17 @@ func reorder(c *gin.Context) {
 
 	var origSeq, destSeq int
 
-	if err := db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq); err != nil {
-		log.Printf("Failed to scan orig seq: %v", err)
+	if err := db.QueryRow(
+		"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq); err != nil {
+		log.Println("Failed to scan orig seq:", err)
 		c.String(500, "")
 		return
 	}
 	if dest != "#TOP_POSITION#" {
 		d := strings.Split(dest, " ")
-		if err := db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq); err != nil {
-			log.Printf("Failed to scan dest seq: %v", err)
+		if err := db.QueryRow(
+			"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq); err != nil {
+			log.Println("Failed to scan dest seq:", err)
 			c.String(500, "")
 			return
 		}
@@ -195,12 +197,13 @@ func reorder(c *gin.Context) {
 		_, err = db.Exec("UPDATE stock SET seq = seq - 1 WHERE seq <= ? AND user_id = ? AND seq > ?", destSeq, userID, origSeq)
 	}
 	if err != nil {
-		log.Printf("Failed to update other seq: %v", err)
+		log.Println("Failed to update other seq:", err)
 		c.String(500, "")
 		return
 	}
-	if _, err := db.Exec("UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID); err != nil {
-		log.Printf("Failed to update orig seq: %v", err)
+	if _, err := db.Exec(
+		"UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID); err != nil {
+		log.Println("Failed to update orig seq:", err)
 		c.String(500, "")
 		return
 	}

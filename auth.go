@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strings"
 
@@ -25,9 +24,9 @@ func authRequired(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.HTML(200, "login.html", gin.H{"error": "Failed to connect to database."})
 		return
 	}
@@ -39,7 +38,8 @@ func login(c *gin.Context) {
 
 	var user user
 	var message string
-	if err := db.QueryRow("SELECT id, username, password FROM user WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password); err != nil {
+	if err := db.QueryRow(
+		"SELECT id, username, password FROM user WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password); err != nil {
 		if strings.Contains(err.Error(), "doesn't exist") {
 			restore("")
 			c.HTML(200, "login.html", gin.H{"error": "Detected first time running. Initialized the database."})
@@ -85,9 +85,9 @@ func login(c *gin.Context) {
 }
 
 func setting(c *gin.Context) {
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Printf("Failed to connect to database: %v", err)
+		log.Println("Failed to connect to database:", err)
 		c.HTML(200, "setting.html", gin.H{"error": "Failed to connect to database."})
 		return
 	}

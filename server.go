@@ -21,7 +21,7 @@ func loadTemplates() multitemplate.Renderer {
 
 	includes, err := filepath.Glob(joinPath(dir(self), "templates/*/*"))
 	if err != nil {
-		log.Fatalf("Failed to glob stock templates: %v", err)
+		log.Fatalln("Failed to glob stock templates:", err)
 	}
 
 	for _, include := range includes {
@@ -34,7 +34,7 @@ func run() {
 	if *logPath != "" {
 		f, err := os.OpenFile(*logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
 		if err != nil {
-			log.Fatalf("Failed to open log file: %v", err)
+			log.Fatalln("Failed to open log file:", err)
 		}
 		gin.DefaultWriter = io.MultiWriter(f)
 		log.SetOutput(gin.DefaultWriter)
@@ -42,7 +42,7 @@ func run() {
 
 	secret := make([]byte, 16)
 	if _, err := rand.Read(secret); err != nil {
-		log.Fatalf("Failed to get secret: %v", err)
+		log.Fatalln("Failed to get secret:", err)
 	}
 
 	router := gin.Default()
@@ -93,13 +93,13 @@ func run() {
 		if _, err := os.Stat(*unix); err == nil {
 			err = os.Remove(*unix)
 			if err != nil {
-				log.Fatalf("Failed to remove socket file: %v", err)
+				log.Fatalln("Failed to remove socket file:", err)
 			}
 		}
 
 		listener, err := net.Listen("unix", *unix)
 		if err != nil {
-			log.Fatalf("Failed to listen socket file: %v", err)
+			log.Fatalln("Failed to listen socket file:", err)
 		}
 
 		idleConnsClosed := make(chan struct{})
@@ -109,18 +109,18 @@ func run() {
 			<-quit
 
 			if err := listener.Close(); err != nil {
-				log.Printf("Failed to close listener: %v", err)
+				log.Println("Failed to close listener:", err)
 			}
 			if _, err := os.Stat(*unix); err == nil {
 				if err := os.Remove(*unix); err != nil {
-					log.Printf("Failed to remove socket file: %v", err)
+					log.Println("Failed to remove socket file:", err)
 				}
 			}
 			close(idleConnsClosed)
 		}()
 
 		if err := os.Chmod(*unix, 0666); err != nil {
-			log.Fatalf("Failed to chmod socket file: %v", err)
+			log.Fatalln("Failed to chmod socket file:", err)
 		}
 
 		http.Serve(listener, router)

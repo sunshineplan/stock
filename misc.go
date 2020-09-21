@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,9 +13,9 @@ import (
 
 func addUser(username string) {
 	log.Println("Start!")
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalln("Failed to connect to database:", err)
 	}
 	defer db.Close()
 
@@ -24,7 +23,7 @@ func addUser(username string) {
 		if strings.Contains(err.Error(), "Duplicate entry") {
 			log.Fatalf("Username %s already exists.", strings.ToLower(username))
 		} else {
-			log.Fatalf("Failed to add user: %v", err)
+			log.Fatalln("Failed to add user:", err)
 		}
 	}
 	log.Println("Done!")
@@ -32,18 +31,18 @@ func addUser(username string) {
 
 func deleteUser(username string) {
 	log.Println("Start!")
-	db, err := sql.Open("sqlite3", sqlite)
+	db, err := getDB()
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalln("Failed to connect to database:", err)
 	}
 	defer db.Close()
 
 	res, err := db.Exec("DELETE FROM user WHERE username=?", strings.ToLower(username))
 	if err != nil {
-		log.Fatalf("Failed to delete user: %v", err)
+		log.Fatalln("Failed to delete user:", err)
 	}
 	if n, err := res.RowsAffected(); err != nil {
-		log.Fatalf("Failed to get affected rows: %v", err)
+		log.Fatalln("Failed to get affected rows:", err)
 	} else if n == 0 {
 		log.Fatalf("User %s does not exist.", strings.ToLower(username))
 	}
@@ -54,12 +53,12 @@ func backup() {
 	log.Println("Start!")
 	m, err := metadataConfig.Get("mystocks_backup")
 	if err != nil {
-		log.Fatalf("Failed to get mystocks_backup metadata: %v", err)
+		log.Fatalln("Failed to get mystocks_backup metadata:", err)
 	}
 	var mailSetting mail.Setting
 	err = json.Unmarshal(m, &mailSetting)
 	if err != nil {
-		log.Fatalf("Failed to unmarshal json: %v", err)
+		log.Fatalln("Failed to unmarshal json:", err)
 	}
 
 	file := dump()
@@ -69,7 +68,7 @@ func backup() {
 		"",
 		&mail.Attachment{FilePath: file, Filename: "database"},
 	); err != nil {
-		log.Fatalf("Failed to send mail: %v", err)
+		log.Fatalln("Failed to send mail:", err)
 	}
 	log.Println("Done!")
 }
@@ -80,7 +79,7 @@ func restore(file string) {
 		file = joinPath(dir(self), "scripts/schema.sql")
 	} else {
 		if _, err := os.Stat(file); err != nil {
-			log.Fatalf("File not found: %v", err)
+			log.Fatalln("File not found:", err)
 		}
 	}
 	dropAll := joinPath(dir(self), "scripts/drop_all.sql")

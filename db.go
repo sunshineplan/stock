@@ -2,10 +2,17 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"io/ioutil"
 	"log"
 	"os/exec"
 )
+
+var sqlite, sqlitePy string
+
+func getDB() (*sql.DB, error) {
+	return sql.Open("sqlite3", sqlite)
+}
 
 func execScript(file string) {
 	var cmd string
@@ -35,7 +42,7 @@ func execScript(file string) {
 func dump() string {
 	tmpfile, err := ioutil.TempFile("", "tmp")
 	if err != nil {
-		log.Fatalf("Failed to create temporary file: %v", err)
+		log.Fatalln("Failed to create temporary file:", err)
 	}
 	tmpfile.Close()
 
