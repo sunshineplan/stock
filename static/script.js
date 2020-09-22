@@ -44,7 +44,7 @@ $(document).on('click', '#login', () => {
 });
 
 function update_indices(ct = false) {
-  if (check_time() === 1 || ct === false) {
+  if (check_time() === 1 || !ct) {
     $.getJSON('/indices', data => {
       $.each(data, (index, json) => {
         if (json !== null) {
@@ -70,7 +70,7 @@ function update_indices(ct = false) {
 };
 
 function my_stocks(ct = false) {
-  if (check_time() === 1 || ct === false) {
+  if (check_time() === 1 || !ct) {
     mystocks = $.getJSON('/mystocks', json => {
       $('#mystocks').empty();
       $.each(json, (i, item) => {
@@ -123,7 +123,7 @@ function add_color_tr(last, value, element) {
 };
 
 function update_realtime(index, code, ct = false) {
-  if (check_time() === 1 || ct === false) {
+  if (check_time() === 1 || !ct) {
     $.getJSON('/get', { index: index, code: code, q: 'realtime' }, json => {
       if (json !== null && json.name != 'n/a') {
         document.title = `${json.name} ${json.now} ${json.percent}`;
@@ -159,7 +159,7 @@ function update_realtime(index, code, ct = false) {
 };
 
 function update_chart(index, code, ct = false) {
-  if (check_time() === 1 || ct === false) {
+  if (check_time() === 1 || !ct) {
     $.get('/get', { index: index, code: code, q: 'chart' }, json => {
       if (json !== null) {
         chart.data.datasets.forEach(dataset => {

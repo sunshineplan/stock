@@ -112,11 +112,11 @@ func star(c *gin.Context) {
 		var exist string
 		if err := db.QueryRow(
 			"SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist); err == nil {
-			c.String(200, "True")
+			c.String(200, "1")
 			return
 		}
 	}
-	c.String(200, "False")
+	c.String(200, "0")
 }
 
 func doStar(c *gin.Context) {

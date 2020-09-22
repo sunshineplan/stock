@@ -9,7 +9,7 @@ if (code != 'n/a') {
 };
 
 $.get('/star', data => {
-  if (data == 'True') {
+  if (data == '1') {
     $('.star').addClass('stared');
     $('.star').text('star');
   };
