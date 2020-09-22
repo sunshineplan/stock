@@ -35,8 +35,6 @@
 <script>
   $('#mystocks').sortable(sortable);
   my_stocks();
-  reload = setInterval(() => {
-    my_stocks(ct = true);
-  }, 3000);
+  reload = setInterval(() => my_stocks(ct = true), 3000);
 </script>
 {{ end }}

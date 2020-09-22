@@ -32,12 +32,8 @@ var sortable = {
     clearInterval(reload);
   },
   stop: () => {
-    setTimeout(() => {
-      my_stocks();
-    }, 500);
-    reload = setInterval(() => {
-      my_stocks(ct = true);
-    }, 3000);
+    setTimeout(() => my_stocks(), 500);
+    reload = setInterval(() => my_stocks(ct = true), 3000);
   },
   update: (event, ui) => reorder(ui)
 };
