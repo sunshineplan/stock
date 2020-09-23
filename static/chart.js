@@ -1,9 +1,4 @@
-if (realtime.code != 'n/a') {
-  update_chart(realtime.index, realtime.code);
-  setInterval(() => update_chart(realtime.index, realtime.code, ct = true), 60000);
-};
-
-function timeLabels(start, end) {
+timeLabels = function (start, end) {
   var times = [];
   for (var i = 0; start <= end; i++) {
     times[i] = `${Math.floor(start / 60).toString().padStart(2, '0')}:${(start % 60).toString().padStart(2, '0')}`;
@@ -40,9 +35,7 @@ chart = new Chart($('#chart'), {
   options: {
     scales: {
       xAxes: [{
-        gridLines: {
-          drawTicks: false
-        },
+        gridLines: { drawTicks: false },
         ticks: {
           padding: 10,
           autoSkipPadding: 100,
@@ -50,12 +43,8 @@ chart = new Chart($('#chart'), {
         }
       }],
       yAxes: [{
-        gridLines: {
-          drawTicks: false
-        },
-        ticks: {
-          padding: 12
-        }
+        gridLines: { drawTicks: false },
+        ticks: { padding: 12 }
       }]
     },
     annotation: {
@@ -73,7 +62,7 @@ chart = new Chart($('#chart'), {
   }
 });
 
-function update_chart(index, code, ct = false) {
+updateChart = function (index, code, ct = false) {
   if (checkTime() || !ct) {
     fetch('/get?' + new URLSearchParams({ index: index, code: code, q: 'chart' }))
       .then(response => response.json()).then(json => {
@@ -88,4 +77,9 @@ function update_chart(index, code, ct = false) {
         };
       });
   };
+};
+
+if (realtime.code != 'n/a') {
+  updateChart(realtime.index, realtime.code);
+  setInterval(() => updateChart(realtime.index, realtime.code, ct = true), 60000);
 };

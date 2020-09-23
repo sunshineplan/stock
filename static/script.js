@@ -25,11 +25,6 @@ autocomplete = {
   }
 };
 
-$(document).on('click', '#login', () => {
-  if ($('#username').val() != 'admin')
-    localStorage.setItem('username', $('#username').val());
-});
-
 checkTime = function () {
   var date = new Date();
   var hour = date.getUTCHours();
@@ -68,3 +63,8 @@ color = function (last, value) {
 gotoStock = function (stock) {
   window.location = `/stock/${stock.index}/${stock.code}`;
 }
+
+$(document).on('click', '#login', () => {
+  if ($('#username').val() != 'admin')
+    localStorage.setItem('username', $('#username').val());
+});
