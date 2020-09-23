@@ -135,16 +135,12 @@ small {
     padding-left: 5px;
 }
 
-.sell5, .buy5 {
-    display: inline-flex;
-}
-
 .buysell {
     min-width: 115px;
     padding-right: 6px;
 }
 
-#沪, #深, #创, #中小板 {
+#沪, #深, #创, #中 {
     color: black;
     max-width: 25%;
     flex: 0 0 25%;
@@ -153,7 +149,7 @@ small {
     font-size: 20px;
 }
 
-#沪, #深, #创, #中小板:hover {
+#沪, #深, #创, #中:hover {
     text-decoration: none;
 }
 

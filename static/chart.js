@@ -1,19 +1,7 @@
-index = $('.code').data('index');
-code = $('.code').text();
-
-if (code != 'n/a') {
-  update_chart(index, code);
-  update_realtime(index, code);
-  setInterval(() => update_chart(index, code, ct = true), 60000);
-  setInterval(() => update_realtime(index, code, ct = true), 3000);
+if (realtime.code != 'n/a') {
+  update_chart(realtime.index, realtime.code);
+  setInterval(() => update_chart(realtime.index, realtime.code, ct = true), 60000);
 };
-
-$.get('/star', data => {
-  if (data == '1') {
-    $('.star').addClass('stared');
-    $('.star').text('star');
-  };
-});
 
 function timeLabels(start, end) {
   var times = [];
@@ -85,16 +73,19 @@ chart = new Chart($('#chart'), {
   }
 });
 
-$(document).on('click', '.star', function () {
-  if ($(this).hasClass('stared'))
-    $.post('/star', { action: 'unstar' }, () => {
-      $('.star').removeClass('stared');
-      $('.star').removeClass('unstar');
-      $('.star').text('star_border');
-    });
-  else
-    $.post('/star', () => {
-      $('.star').addClass('stared');
-      $('.star').text('star');
-    });
-});
+function update_chart(index, code, ct = false) {
+  if (checkTime() || !ct) {
+    fetch('/get?' + new URLSearchParams({ index: index, code: code, q: 'chart' }))
+      .then(response => response.json()).then(json => {
+        if (json !== null) {
+          chart.data.datasets.forEach(dataset => {
+            dataset.data = json.chart;
+          });
+          chart.options.scales.yAxes[0].ticks.suggestedMin = json.last / 1.01;
+          chart.options.scales.yAxes[0].ticks.suggestedMax = json.last * 1.01;
+          chart.annotation.options.annotations[0].value = json.last;
+          chart.update();
+        };
+      });
+  };
+};

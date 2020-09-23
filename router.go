@@ -64,7 +64,7 @@ func myStocks(c *gin.Context) {
 
 func indices(c *gin.Context) {
 	indices := doGetRealtimes([]stock{&sse{Code: "000001"}, &szse{Code: "399001"}, &szse{Code: "399006"}, &szse{Code: "399005"}})
-	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中小板": indices[3]})
+	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中": indices[3]})
 }
 
 func getStock(c *gin.Context) {

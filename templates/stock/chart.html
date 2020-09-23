@@ -17,38 +17,10 @@
   </div>
   <a>Home</a>
 </div>
-<div style='display: flex; font-size: 2rem;'>
-  <i class='material-icons star'>star_border</i>
-  <span class='name'>n/a</span>(<span class='code' data-index='{{ .index }}'>{{ .code }}</span>)&nbsp;&nbsp;&nbsp;
-  <span class='now'></span>&nbsp;&nbsp;&nbsp;<span class='percent'></span>
+<div id='realtime' data-index='{{ .index }}' data-code='{{ .code }}'>
+  <realtime :stock='Stock'></realtime>
 </div>
-<div style='min-height: 52px;'>
-  <table style='float: left; width: 360px; table-layout: fixed;' id='info'>
-    <tbody>
-      <tr>
-        <td>昨收: <span class='last'>n/a</span></td>
-        <td>涨跌: <span class='change'>n/a</span></td>
-        <td>涨幅: <span class='percent'>n/a</span></td>
-      </tr>
-      <tr>
-        <td>最高: <span class='high'>n/a</span></td>
-        <td>最低: <span class='low'>n/a</span></td>
-        <td>开盘: <span class='open'>n/a</span></td>
-      </tr>
-    </tbody>
-  </table>
-  <table id='buysell'>
-    <tbody>
-      <tr>
-        <td><span class='sell5'></span></td>
-      </tr>
-      <tr>
-        <td><span class='buy5'></span></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<small>更新时间: <span class='update'>n/a</span></small>
+<script src='/static/realtime.js'></script>
 {{ end }}
 
 {{ define "content" }}
