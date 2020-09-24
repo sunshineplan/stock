@@ -28,7 +28,7 @@ Vue.component("realtime", {
           <td>
             <span style='display: inline-flex'>
               卖盘:&nbsp;
-              <div class='buysell' style='color: red' v-for='sell in stock.sell5'>{{ sell[0] }}-{{ sell[1] }}</div>
+              <div class='sellbuy' style='color: red' v-for='sell in stock.sell5'>{{ sell.Price }}-{{ sell.Volume }}</div>
             </span>
           </td>
         </tr>
@@ -36,7 +36,7 @@ Vue.component("realtime", {
           <td>
             <span style='display: inline-flex'>
               买盘:&nbsp;
-              <div class='buysell' style='color: green' v-for='buy in stock.buy5'>{{ buy[0] }}-{{ buy[1] }}</div>
+              <div class='sellbuy' style='color: green' v-for='buy in stock.buy5'>{{ buy.Price }}-{{ buy.Volume }}</div>
             </span>
           </td>
         </tr>

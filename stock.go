@@ -18,13 +18,18 @@ type realtime struct {
 	now     float64
 	change  float64
 	percent string
-	sell5   [][]interface{}
-	buy5    [][]interface{}
+	sell5   []sellbuy
+	buy5    []sellbuy
 	high    float64
 	low     float64
 	open    float64
 	last    float64
 	update  string
+}
+
+type sellbuy struct {
+	Price  float64
+	Volume int
 }
 
 type chart struct {
