@@ -1,16 +1,11 @@
 {{ define "title" }}My Stocks{{ end }}
 
-{{ define "search" }}
-<div class='search'>
-  <div class='icon'>
-    <i class='material-icons'>search</i>
-  </div>
-  <input placeholder='Search Stock' id='autocomplete'>
+{{ define "header" }}
+<div id='autocomplete'>
+  <autocomplete></autocomplete>
 </div>
-<script>$("#autocomplete").autocomplete(autocomplete)</script>
+<script src='/static/autocomplete.js'></script>
 {{ end }}
-
-{{ define "header" }}{{ end }}
 
 {{ define "content" }}
 <div class='table-responsive' id='mystocks'>

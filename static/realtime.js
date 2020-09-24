@@ -44,8 +44,7 @@ Vue.component("realtime", {
     </table>
   </div>
   <small>更新时间: <span class='update'>{{ stock.update }}</span></small>
-</div>
-`,
+</div>`,
   props: { stock: Object },
   data() { return { stared: false } },
   created() {

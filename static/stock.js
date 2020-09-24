@@ -11,8 +11,7 @@ Vue.component("mystocks", {
       <td v-for='val in columns' :style='addColor(stock, val)'>{{ stock[val] }}</td>
     </tr>
   </tbody>
-</table>
-`,
+</table>`,
   props: {
     stocks: Array,
     columns: Object,

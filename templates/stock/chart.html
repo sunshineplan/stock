@@ -1,16 +1,10 @@
 {{ define "title" }}{{ .index }}: n/a{{ end }}
 
-{{ define "search" }}
-<div class='search'>
-  <div class='icon'>
-    <i class='material-icons'>search</i>
-  </div>
-  <input placeholder='Search Stock' id='autocomplete'>
-</div>
-<script>$("#autocomplete").autocomplete(autocomplete)</script>
-{{ end }}
-
 {{ define "header" }}
+<div id='autocomplete'>
+  <autocomplete></autocomplete>
+</div>
+<script src='/static/autocomplete.js'></script>
 <div class='home' onclick='window.location="/";'>
   <div class='icon'>
     <i class='material-icons'>home</i>

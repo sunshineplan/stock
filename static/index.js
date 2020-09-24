@@ -6,8 +6,7 @@ Vue.component("indices", {
     <span class='full'>{{ val }}</span>
     <span v-for='field in fields' :style='addColor(indices[key], field)'>&nbsp;&nbsp;{{ indices[key][field] }}</span>
   </a>
-</div>
-`,
+</div>`,
   props: { indices: Object },
   data() {
     return {
