@@ -2,17 +2,14 @@ autocomplete = {
   source: (request, response) => {
     fetch('/suggest?' + new URLSearchParams({ keyword: request.term }))
       .then(response => response.json()).then(data => {
-        if (!data)
-          response(['No matches found.']);
-        else
-          response($.map(data, item => {
-            return `${item.Index}:${item.Code} ${item.Name} ${item.Type}`;
-          }));
+        if (!data) response(['No matches found.']);
+        else response($.map(data, item => {
+          return `${item.Index}:${item.Code} ${item.Name} ${item.Type}`;
+        }));
       });
   },
   select: (event, ui) => {
-    if (ui.item.value == 'No matches found.')
-      event.preventDefault();
+    if (ui.item.value == 'No matches found.') event.preventDefault();
     else {
       var stock = ui.item.value.split(' ')[0].split(':');
       window.location.replace(`/stock/${stock[0]}/${stock[1]}`);
@@ -20,20 +17,17 @@ autocomplete = {
   },
   minLength: 2,
   autoFocus: true,
-  position: {
-    of: '.search'
-  }
-};
+  position: { of: '.search' }
+}
 
 checkTime = function () {
   var date = new Date();
   var hour = date.getUTCHours();
   var day = date.getDay();
-  if (hour >= 1 && hour <= 8 && day >= 1 && day <= 5) {
+  if (hour >= 1 && hour <= 8 && day >= 1 && day <= 5)
     return true;
-  };
   return false;
-};
+}
 
 addColor = function (stock, val) {
   if (stock !== null && stock.name != 'n/a') {
@@ -62,6 +56,15 @@ color = function (last, value) {
 
 gotoStock = function (stock) {
   window.location = `/stock/${stock.index}/${stock.code}`;
+}
+
+timeLabels = function (start, end) {
+  var times = [];
+  for (var i = 0; start <= end; i++) {
+    times[i] = `${Math.floor(start / 60).toString().padStart(2, '0')}:${(start % 60).toString().padStart(2, '0')}`;
+    start++;
+  }
+  return times;
 }
 
 $(document).on('click', '#login', () => {

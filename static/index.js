@@ -8,9 +8,7 @@ Vue.component("indices", {
   </a>
 </div>
 `,
-  props: {
-    indices: Object
-  },
+  props: { indices: Object },
   data() {
     return {
       names: { '沪': '上证指数', '深': '深证成指', '创': '创业板指', '中': '中小板指' },
@@ -21,16 +19,12 @@ Vue.component("indices", {
     addColor: addColor,
     gotoStock: gotoStock
   }
-});
+})
 
 new Vue({
   el: "#indices",
-  data: {
-    Indices: {}
-  },
-  created() {
-    this.start();
-  },
+  data: { Indices: {} },
+  created() { this.start() },
   methods: {
     start: function () {
       this.load();
@@ -44,4 +38,4 @@ new Vue({
       };
     }
   }
-});
+})

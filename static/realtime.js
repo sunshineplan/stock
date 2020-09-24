@@ -46,14 +46,8 @@ Vue.component("realtime", {
   <small>更新时间: <span class='update'>{{ stock.update }}</span></small>
 </div>
 `,
-  props: {
-    stock: Object
-  },
-  data() {
-    return {
-      stared: false
-    }
-  },
+  props: { stock: Object },
+  data() { return { stared: false } },
   created() {
     fetch('/star').then(response => response.text())
       .then(data => { if (data == '1') this.stared = true });
@@ -74,7 +68,7 @@ Vue.component("realtime", {
     },
     addColor: addColor
   }
-});
+})
 
 realtime = new Vue({
   el: "#realtime",
@@ -83,9 +77,7 @@ realtime = new Vue({
     code: document.getElementById('realtime').dataset.code,
     Stock: {}
   },
-  created() {
-    this.start();
-  },
+  created() { this.start() },
   methods: {
     start: function () {
       this.load();
@@ -108,4 +100,4 @@ realtime = new Vue({
           });
     }
   }
-});
+})

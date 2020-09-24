@@ -18,14 +18,12 @@ Vue.component("mystocks", {
     columns: Object,
     sortable: Object
   },
-  mounted() {
-    $('#sortable').sortable(this.sortable);
-  },
+  mounted() { $('#sortable').sortable(this.sortable) },
   methods: {
     addColor: addColor,
     gotoStock: gotoStock
   }
-});
+})
 
 mystocks = new Vue({
   el: "#mystocks",
@@ -51,9 +49,7 @@ mystocks = new Vue({
     autoUpdate: '',
     fetching: ''
   },
-  created() {
-    this.start();
-  },
+  created() { this.start() },
   methods: {
     start: function () {
       this.load();
@@ -73,17 +69,13 @@ mystocks = new Vue({
       };
     },
     reorder: ui => {
-      var orig, dest
+      var orig, dest;
       orig = ui.item.find('td')[0].textContent + ' ' + ui.item.find('td')[1].textContent;
-      if (ui.item.prev().length != 0) {
+      if (ui.item.prev().length != 0)
         dest = ui.item.prev().find('td')[0].textContent + ' ' + ui.item.prev().find('td')[1].textContent;
-      } else {
-        dest = '#TOP_POSITION#';
-      };
+      else dest = '#TOP_POSITION#';
       fetch('/reorder', { method: 'POST', body: new URLSearchParams({ orig: orig, dest: dest }) });
     }
   },
-  beforeDestroy() {
-    this.stop();
-  }
-});
+  beforeDestroy() { this.stop() }
+})
