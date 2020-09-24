@@ -18,7 +18,7 @@ type user struct {
 func authRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
-	if userID == nil {
+	if userID == nil || userID == 0 {
 		c.Redirect(302, "/")
 	}
 }

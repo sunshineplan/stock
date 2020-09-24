@@ -33,6 +33,9 @@ func myStocks(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 	if userID == nil {
+		session.Clear()
+		session.Set("user_id", 0)
+		session.Save()
 		userID = 0
 	}
 
