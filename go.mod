@@ -1,18 +1,18 @@
 module github.com/sunshineplan/mystocks-go
 
-go 1.14
+go 1.15
 
 require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
-	github.com/gin-contrib/multitemplate v0.0.0-20200514145638-4955c9347179
-	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
+	github.com/gin-contrib/multitemplate v0.0.0-20200916052041-666a7309d230
+	github.com/gin-gonic/contrib v0.0.0-20200913005814-1c32036e7ea4
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-mail/mail v2.3.1+incompatible // indirect
-	github.com/gorilla/sessions v1.2.0 // indirect
-	github.com/mattn/go-sqlite3 v1.14.0
+	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.3
 	github.com/sunshineplan/metadata v0.0.0-20200803020007-3027c995551f
 	github.com/sunshineplan/utils v0.0.0-20200910053708-d4b90836073e
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/text v0.3.3
 )

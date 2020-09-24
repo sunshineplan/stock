@@ -1,38 +1,13 @@
-index = $('.code').data('index');
-code = $('.code').text();
+Chart.defaults.global.maintainAspectRatio = false
+Chart.defaults.global.legend.display = false
+Chart.defaults.global.hover.mode = 'index'
+Chart.defaults.global.hover.intersect = false
+Chart.defaults.global.tooltips.mode = 'index'
+Chart.defaults.global.tooltips.intersect = false
+Chart.defaults.global.tooltips.displayColors = false
+Chart.defaults.global.animation.duration = 0
 
-if (code != 'n/a') {
-  update_chart(index, code);
-  update_realtime(index, code);
-  setInterval(() => update_chart(index, code, ct = true), 60000);
-  setInterval(() => update_realtime(index, code, ct = true), 3000);
-};
-
-$.get('/star', data => {
-  if (data == '1') {
-    $('.star').addClass('stared');
-    $('.star').text('star');
-  };
-});
-
-function timeLabels(start, end) {
-  var times = [];
-  for (var i = 0; start <= end; i++) {
-    times[i] = `${Math.floor(start / 60).toString().padStart(2, '0')}:${(start % 60).toString().padStart(2, '0')}`;
-    start++;
-  }
-  return times;
-}
-
-Chart.defaults.global.maintainAspectRatio = false;
-Chart.defaults.global.legend.display = false;
-Chart.defaults.global.hover.mode = 'index';
-Chart.defaults.global.hover.intersect = false;
-Chart.defaults.global.tooltips.mode = 'index';
-Chart.defaults.global.tooltips.intersect = false;
-Chart.defaults.global.tooltips.displayColors = false;
-Chart.defaults.global.animation.duration = 0;
-chart = new Chart($('#chart'), {
+chart = new Chart(document.getElementById('chart'), {
   type: 'line',
   data: {
     labels: timeLabels(9 * 60 + 30, 11 * 60 + 30).concat(timeLabels(13 * 60 + 1, 15 * 60)),
@@ -52,9 +27,7 @@ chart = new Chart($('#chart'), {
   options: {
     scales: {
       xAxes: [{
-        gridLines: {
-          drawTicks: false
-        },
+        gridLines: { drawTicks: false },
         ticks: {
           padding: 10,
           autoSkipPadding: 100,
@@ -62,12 +35,8 @@ chart = new Chart($('#chart'), {
         }
       }],
       yAxes: [{
-        gridLines: {
-          drawTicks: false
-        },
-        ticks: {
-          padding: 12
-        }
+        gridLines: { drawTicks: false },
+        ticks: { padding: 12 }
       }]
     },
     annotation: {
@@ -83,18 +52,36 @@ chart = new Chart($('#chart'), {
       ]
     }
   }
-});
+})
 
-$(document).on('click', '.star', function () {
-  if ($(this).hasClass('stared'))
-    $.post('/star', { action: 'unstar' }, () => {
-      $('.star').removeClass('stared');
-      $('.star').removeClass('unstar');
-      $('.star').text('star_border');
-    });
-  else
-    $.post('/star', () => {
-      $('.star').addClass('stared');
-      $('.star').text('star');
-    });
-});
+new Vue({
+  data: {
+    index: realtime.index,
+    code: realtime.code,
+  },
+  created() { this.start() },
+  methods: {
+    start: function () {
+      if (this.code != 'n/a') {
+        this.load(this.index, this.code);
+        setInterval(() => this.load(this.index, this.code, ct = true), 60000);
+      }
+    },
+    load: function (index, code, ct = false) {
+      if (checkTime() || !ct) {
+        fetch('/get?' + new URLSearchParams({ index: index, code: code, q: 'chart' }))
+          .then(response => response.json()).then(json => {
+            if (json !== null) {
+              chart.data.datasets.forEach(dataset => {
+                dataset.data = json.chart;
+              });
+              chart.options.scales.yAxes[0].ticks.suggestedMin = json.last / 1.01;
+              chart.options.scales.yAxes[0].ticks.suggestedMax = json.last * 1.01;
+              chart.annotation.options.annotations[0].value = json.last;
+              chart.update();
+            };
+          });
+      };
+    }
+  }
+})

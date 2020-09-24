@@ -56,13 +56,14 @@ func (s *szse) getRealtime() {
 	s.Realtime.open, _ = strconv.ParseFloat(result.Data.Open, 64)
 	s.Realtime.last, _ = strconv.ParseFloat(result.Data.Close, 64)
 	s.Realtime.update = result.Data.MarketTime
-	var sell5 [][]interface{}
-	var buy5 [][]interface{}
+	var sell5 []sellbuy
+	var buy5 []sellbuy
 	for i, v := range result.Data.Sellbuy5 {
+		price, _ := strconv.ParseFloat(v.Price, 64)
 		if i < 5 {
-			sell5 = append(sell5, []interface{}{v.Price, v.Volume})
+			sell5 = append(sell5, sellbuy{Price: price, Volume: v.Volume})
 		} else {
-			buy5 = append(buy5, []interface{}{v.Price, v.Volume})
+			buy5 = append(buy5, sellbuy{Price: price, Volume: v.Volume})
 		}
 	}
 	s.Realtime.sell5 = sell5

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"regexp"
 	"time"
 
@@ -50,13 +51,19 @@ func (s *sse) getRealtime() {
 	s.Realtime.open = r.Snap[2].(float64)
 	s.Realtime.last = r.Snap[1].(float64)
 	s.Realtime.update = fmt.Sprintf("%d.%d", r.Date, r.Time)
-	var sell5, buy5 [][]interface{}
-	for i := 0; i < len(r.Snap[len(r.Snap)-1].([]interface{})); i += 2 {
-		sell5 = append(sell5, []interface{}{r.Snap[len(r.Snap)-1].([]interface{})[i], r.Snap[len(r.Snap)-1].([]interface{})[i+1]})
-		buy5 = append(buy5, []interface{}{r.Snap[len(r.Snap)-2].([]interface{})[i], r.Snap[len(r.Snap)-2].([]interface{})[i+1]})
+	var sell5, buy5 []sellbuy
+	for i := 0; i < 10; i += 2 {
+		sell5 = append(sell5,
+			sellbuy{r.Snap[len(r.Snap)-1].([]interface{})[i].(float64), int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64))})
+		buy5 = append(buy5,
+			sellbuy{r.Snap[len(r.Snap)-2].([]interface{})[i].(float64), int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64))})
 	}
-	s.Realtime.sell5 = sell5
-	s.Realtime.buy5 = buy5
+	if !reflect.DeepEqual(sell5, []sellbuy{{}, {}, {}, {}, {}}) {
+		s.Realtime.sell5 = sell5
+	}
+	if !reflect.DeepEqual(buy5, []sellbuy{{}, {}, {}, {}, {}}) {
+		s.Realtime.buy5 = buy5
+	}
 }
 
 func (s *sse) getChart() {

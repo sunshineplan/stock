@@ -1,40 +1,15 @@
 {{ define "title" }}My Stocks{{ end }}
 
-{{ define "search" }}
-<div class='search'>
-  <div class='icon'>
-    <i class='material-icons'>search</i>
-  </div>
-  <input placeholder='Search Stock' id='autocomplete'>
+{{ define "header" }}
+<div id='autocomplete'>
+  <autocomplete></autocomplete>
 </div>
-<script>$("#autocomplete").autocomplete(autocomplete)</script>
+<script src='/static/autocomplete.js'></script>
 {{ end }}
 
-{{ define "header" }}{{ end }}
-
 {{ define "content" }}
-<div class='table-responsive'>
-  <table class='table table-hover table-sm'>
-    <thead>
-      <tr>
-        <th scope='col'>指数</th>
-        <th scope='col'>代码</th>
-        <th scope='col'>名称</th>
-        <th scope='col'>最新</th>
-        <th scope='col'>涨跌</th>
-        <th scope='col'>涨幅</th>
-        <th scope='col'>最高</th>
-        <th scope='col'>最低</th>
-        <th scope='col'>开盘</th>
-        <th scope='col'>昨收</th>
-      </tr>
-    </thead>
-    <tbody id='mystocks'></tbody>
-  </table>
+<div class='table-responsive' id='mystocks'>
+  <mystocks :stocks='Stocks' :columns='Columns' :sortable='Sortable'></mystocks>
 </div>
-<script>
-  $('#mystocks').sortable(sortable);
-  my_stocks();
-  reload = setInterval(() => my_stocks(ct = true), 3000);
-</script>
+<script src='/static/stock.js'></script>
 {{ end }}

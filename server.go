@@ -59,7 +59,7 @@ func run() {
 	auth.GET("/login", func(c *gin.Context) {
 		session := sessions.Default(c)
 		user := session.Get("user_id")
-		if user != nil {
+		if user != nil && user != 0 {
 			c.Redirect(302, "/")
 			return
 		}
