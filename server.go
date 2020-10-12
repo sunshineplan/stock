@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -36,8 +35,9 @@ func run() {
 		if err != nil {
 			log.Fatalln("Failed to open log file:", err)
 		}
-		gin.DefaultWriter = io.MultiWriter(f)
-		log.SetOutput(gin.DefaultWriter)
+		gin.DefaultWriter = f
+		gin.DefaultErrorWriter = f
+		log.SetOutput(f)
 	}
 
 	secret := make([]byte, 16)

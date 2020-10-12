@@ -12,7 +12,7 @@ import (
 )
 
 func addUser(username string) {
-	log.Println("Start!")
+	log.Print("Start!")
 	db, err := getDB()
 	if err != nil {
 		log.Fatalln("Failed to connect to database:", err)
@@ -26,11 +26,11 @@ func addUser(username string) {
 			log.Fatalln("Failed to add user:", err)
 		}
 	}
-	log.Println("Done!")
+	log.Print("Done!")
 }
 
 func deleteUser(username string) {
-	log.Println("Start!")
+	log.Print("Start!")
 	db, err := getDB()
 	if err != nil {
 		log.Fatalln("Failed to connect to database:", err)
@@ -46,11 +46,11 @@ func deleteUser(username string) {
 	} else if n == 0 {
 		log.Fatalf("User %s does not exist.", strings.ToLower(username))
 	}
-	log.Println("Done!")
+	log.Print("Done!")
 }
 
 func backup() {
-	log.Println("Start!")
+	log.Print("Start!")
 	m, err := metadataConfig.Get("mystocks_backup")
 	if err != nil {
 		log.Fatalln("Failed to get mystocks_backup metadata:", err)
@@ -70,11 +70,11 @@ func backup() {
 	); err != nil {
 		log.Fatalln("Failed to send mail:", err)
 	}
-	log.Println("Done!")
+	log.Print("Done!")
 }
 
 func restore(file string) {
-	log.Println("Start!")
+	log.Print("Start!")
 	if file == "" {
 		file = joinPath(dir(self), "scripts/schema.sql")
 	} else {
@@ -85,5 +85,5 @@ func restore(file string) {
 	dropAll := joinPath(dir(self), "scripts/drop_all.sql")
 	execScript(dropAll)
 	execScript(file)
-	log.Println("Done!")
+	log.Print("Done!")
 }
