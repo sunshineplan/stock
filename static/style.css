@@ -169,6 +169,14 @@ small {
     border-radius: 50%;
 }
 
+.open {
+    margin-left: 0.5rem;
+    color: gray;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
 .ui-autocomplete-input {
     background-color: transparent;
     padding: 10px;

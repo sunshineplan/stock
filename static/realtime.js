@@ -3,7 +3,8 @@ Vue.component("realtime", {
 <div>
   <div style='display: flex; font-size: 2rem;'>
     <i class='material-icons star' :class='stared ? "stared" : ""' @click='star'>{{ stared ? 'star' : 'star_border' }}</i>
-    <span>{{ stock.name }}</span>(<span>{{ stock.code }}</span>)&nbsp;&nbsp;&nbsp;
+    <span>{{ stock.name }}</span>(<span>{{ stock.code }}</span>)
+    <i class='material-icons open' @click='open'>open_in_new</i>&nbsp;&nbsp;&nbsp;
     <span :style='addColor(stock, "now")'>{{ stock.now }}</span>&nbsp;&nbsp;&nbsp;
     <span :style='addColor(stock, "percent")'>{{ stock.percent }}</span>
   </div>
@@ -64,6 +65,9 @@ Vue.component("realtime", {
           .then(() => this.stared = false)
       else
         fetch('/star', { method: 'POST' }).then(() => this.stared = true);
+    },
+    open: function () {
+      window.open("http://stockpage.10jqka.com.cn/" + this.stock.code);
     },
     addColor: addColor
   }
