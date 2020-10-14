@@ -85,7 +85,6 @@ func installService(name, desc string) error {
 	}
 	s, err = m.CreateService(name, exepath, mgr.Config{
 		StartType:        mgr.StartAutomatic,
-		ServiceStartName: "NT AUTHORITY\\LOCAL SERVICE",
 		Description:      desc,
 	})
 	if err != nil {
