@@ -72,12 +72,15 @@ new Vue({
         fetch('/get?' + new URLSearchParams({ index: index, code: code, q: 'chart' }))
           .then(response => response.json()).then(json => {
             if (json !== null) {
-              chart.data.datasets.forEach(dataset => {
-                dataset.data = json.chart;
-              });
-              chart.options.scales.yAxes[0].ticks.suggestedMin = json.last / 1.01;
-              chart.options.scales.yAxes[0].ticks.suggestedMax = json.last * 1.01;
-              chart.annotation.options.annotations[0].value = json.last;
+              if (json.chart != null)
+                chart.data.datasets.forEach(dataset => {
+                  dataset.data = json.chart;
+                });
+              if (json.last != 0) {
+                chart.options.scales.yAxes[0].ticks.suggestedMin = json.last / 1.01;
+                chart.options.scales.yAxes[0].ticks.suggestedMax = json.last * 1.01;
+                chart.annotation.options.annotations[0].value = json.last;
+              }
               chart.update();
             };
           });
