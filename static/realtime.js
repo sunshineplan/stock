@@ -1,4 +1,38 @@
-Vue.component("realtime", {
+const app = Vue.createApp({
+  data() {
+    return {
+      index: document.getElementById('realtime').dataset.index,
+      code: document.getElementById('realtime').dataset.code,
+      refresh: Number(document.getElementById('realtime').dataset.refresh) + 1,
+      Stock: {}
+    }
+  },
+  created() { this.start() },
+  methods: {
+    start: function () {
+      this.load();
+      setInterval(() => this.load(ct = true), this.refresh * 1000);
+    },
+    load: function (ct = false) {
+      if (checkTime() || !ct)
+        fetch('/get?' + new URLSearchParams({ index: this.index, code: this.code, q: 'realtime' }))
+          .then(response => response.json())
+          .then(stock => {
+            this.Stock = stock;
+            if (stock !== null && stock.name != 'n/a') {
+              document.title = `${stock.name} ${stock.now} ${stock.percent}`;
+              var last = chart.data.datasets[0].data;
+              if (last.length != 0) {
+                last[last.length - 1].y = stock.now;
+                chart.update();
+              };
+            };
+          });
+    }
+  }
+})
+
+app.component("realtime", {
   template: `
 <div>
   <div style='display: flex; font-size: 2rem;'>
@@ -73,35 +107,4 @@ Vue.component("realtime", {
   }
 })
 
-realtime = new Vue({
-  el: "#realtime",
-  data: {
-    index: document.getElementById('realtime').dataset.index,
-    code: document.getElementById('realtime').dataset.code,
-    refresh: Number(document.getElementById('realtime').dataset.refresh) + 1,
-    Stock: {}
-  },
-  created() { this.start() },
-  methods: {
-    start: function () {
-      this.load();
-      setInterval(() => this.load(ct = true), this.refresh * 1000);
-    },
-    load: function (ct = false) {
-      if (checkTime() || !ct)
-        fetch('/get?' + new URLSearchParams({ index: this.index, code: this.code, q: 'realtime' }))
-          .then(response => response.json())
-          .then(stock => {
-            this.Stock = stock;
-            if (stock !== null && stock.name != 'n/a') {
-              document.title = `${stock.name} ${stock.now} ${stock.percent}`;
-              var last = chart.data.datasets[0].data;
-              if (last.length != 0) {
-                last[last.length - 1].y = stock.now;
-                chart.update();
-              };
-            };
-          });
-    }
-  }
-})
+realtime = app.mount('#realtime')

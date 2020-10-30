@@ -54,10 +54,12 @@ chart = new Chart(document.getElementById('chart'), {
   }
 })
 
-new Vue({
-  data: {
-    index: realtime.index,
-    code: realtime.code,
+Vue.createApp({
+  data() {
+    return {
+      index: realtime.index,
+      code: realtime.code,
+    }
   },
   created() { this.start() },
   methods: {
@@ -87,4 +89,4 @@ new Vue({
       };
     }
   }
-})
+}).mount('#chart')

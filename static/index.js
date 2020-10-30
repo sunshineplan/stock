@@ -1,4 +1,22 @@
-Vue.component("indices", {
+const indices = Vue.createApp({
+  data() { return { Indices: {} } },
+  created() { this.start() },
+  methods: {
+    start: function () {
+      this.load();
+      setInterval(() => this.load(ct = true), 30000);
+    },
+    load: function (ct = false) {
+      if (checkTime() || !ct) {
+        fetch('/indices')
+          .then(response => response.json())
+          .then(json => { this.Indices = json });
+      };
+    }
+  }
+})
+
+indices.component("indices", {
   template: `
 <div class='indices' v-if='Object.keys(indices).length !== 0'>
   <a v-for='(val, key) in names' :id='key' @click='gotoStock(indices[key])'>
@@ -20,21 +38,4 @@ Vue.component("indices", {
   }
 })
 
-new Vue({
-  el: "#indices",
-  data: { Indices: {} },
-  created() { this.start() },
-  methods: {
-    start: function () {
-      this.load();
-      setInterval(() => this.load(ct = true), 30000);
-    },
-    load: function (ct = false) {
-      if (checkTime() || !ct) {
-        fetch('/indices')
-          .then(response => response.json())
-          .then(json => { this.Indices = json });
-      };
-    }
-  }
-})
+indices.mount('#indices')

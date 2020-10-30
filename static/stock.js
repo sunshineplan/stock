@@ -1,53 +1,28 @@
-Vue.component("mystocks", {
-  template: `
-<table class='table table-hover table-sm'>
-  <thead>
-    <tr>
-      <th v-for='(val, key) in columns'>{{ key }}</th>
-    </tr>
-  </thead>
-  <tbody id='sortable'>
-    <tr v-for='stock in stocks' @click='gotoStock(stock)'>
-      <td v-for='val in columns' :style='addColor(stock, val)'>{{ stock[val] }}</td>
-    </tr>
-  </tbody>
-</table>`,
-  props: {
-    stocks: Array,
-    columns: Object,
-    sortable: Object
-  },
-  mounted() { $('#sortable').sortable(this.sortable) },
-  methods: {
-    addColor: addColor,
-    gotoStock: gotoStock
-  }
-})
-
-mystocks = new Vue({
-  el: "#mystocks",
-  data: {
-    Columns: {
-      '指数': 'index',
-      '代码': 'code',
-      '名称': 'name',
-      '最新': 'now',
-      '涨跌': 'change',
-      '涨幅': 'percent',
-      '最高': 'high',
-      '最低': 'low',
-      '开盘': 'open',
-      '昨收': 'last'
-    },
-    Stocks: [],
-    Sortable: {
-      start: () => mystocks.stop(),
-      stop: () => window.location = '/',
-      update: (event, ui) => mystocks.reorder(ui)
-    },
-    refresh: Number(document.getElementById('mystocks').dataset.refresh) + 1,
-    autoUpdate: '',
-    fetching: ''
+const mystocks = Vue.createApp({
+  data() {
+    return {
+      Columns: {
+        '指数': 'index',
+        '代码': 'code',
+        '名称': 'name',
+        '最新': 'now',
+        '涨跌': 'change',
+        '涨幅': 'percent',
+        '最高': 'high',
+        '最低': 'low',
+        '开盘': 'open',
+        '昨收': 'last'
+      },
+      Stocks: [],
+      Sortable: {
+        start: () => this.stop(),
+        stop: () => window.location = '/',
+        update: (event, ui) => this.reorder(ui)
+      },
+      refresh: Number(document.getElementById('mystocks').dataset.refresh) + 1,
+      autoUpdate: '',
+      fetching: ''
+    }
   },
   created() { this.start() },
   methods: {
@@ -77,5 +52,33 @@ mystocks = new Vue({
       fetch('/reorder', { method: 'POST', body: new URLSearchParams({ orig: orig, dest: dest }) });
     }
   },
-  beforeDestroy() { this.stop() }
+  beforeUnmount() { this.stop() }
 })
+
+mystocks.component("mystocks", {
+  template: `
+<table class='table table-hover table-sm'>
+  <thead>
+    <tr>
+      <th v-for='(val, key) in columns'>{{ key }}</th>
+    </tr>
+  </thead>
+  <tbody id='sortable'>
+    <tr v-for='stock in stocks' @click='gotoStock(stock)'>
+      <td v-for='val in columns' :style='addColor(stock, val)'>{{ stock[val] }}</td>
+    </tr>
+  </tbody>
+</table>`,
+  props: {
+    stocks: Array,
+    columns: Object,
+    sortable: Object
+  },
+  mounted() { $('#sortable').sortable(this.sortable) },
+  methods: {
+    addColor: addColor,
+    gotoStock: gotoStock
+  }
+})
+
+mystocks.mount('#mystocks')

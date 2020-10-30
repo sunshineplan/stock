@@ -1,4 +1,6 @@
-Vue.component("autocomplete", {
+const autocomplete = Vue.createApp({})
+
+autocomplete.component("autocomplete", {
   template: `
 <div class='search'>
   <div class='icon'>
@@ -31,4 +33,4 @@ Vue.component("autocomplete", {
   },
 })
 
-new Vue({ el: '#autocomplete' })
+autocomplete.mount('#autocomplete')
