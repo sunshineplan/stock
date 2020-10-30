@@ -13,8 +13,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sunshineplan/metadata"
 	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/winsvc"
 	"github.com/vharitonsky/iniflags"
-	"golang.org/x/sys/windows/svc"
 )
 
 // OS is the running program's operating system
@@ -40,6 +40,9 @@ func init() {
 	os.MkdirAll(joinPath(dir(self), "instance"), 0755)
 	sqlite = joinPath(dir(self), "instance/mystocks.db")
 	sqlitePy = joinPath(dir(self), "scripts/sqlite.py")
+	winsvc.SetServiceName("MyStocks")
+	winsvc.SetDescription("MyStocks Service")
+	winsvc.SetExecution(run)
 }
 
 func usage(errmsg string) {
@@ -67,15 +70,12 @@ func main() {
 	iniflags.Parse()
 	client.Timeout = time.Duration(refresh) * time.Second
 
-	isIntSess, err := svc.IsAnInteractiveSession()
-	if err != nil {
-		log.Fatalln("failed to determine if we are running in an interactive session:", err)
-	}
-	if !isIntSess {
-		runService(svcName, false)
+	if winsvc.IsWindowsService() {
+		winsvc.RunService(false)
 		return
 	}
 
+	var err error
 	switch flag.NArg() {
 	case 0:
 		run()
@@ -84,13 +84,13 @@ func main() {
 		case "run", "debug":
 			run()
 		case "install":
-			err = installService(svcName, svcDescription)
+			err = winsvc.InstallService()
 		case "remove":
-			err = removeService(svcName)
+			err = winsvc.RemoveService()
 		case "start":
-			err = startService(svcName)
+			err = winsvc.StartService()
 		case "stop":
-			err = controlService(svcName, svc.Stop, svc.Stopped)
+			err = winsvc.StopService()
 		case "backup":
 			backup()
 		case "init":
@@ -119,6 +119,6 @@ func main() {
 		usage(fmt.Sprintf("Unknown arguments: %s", strings.Join(flag.Args(), " ")))
 	}
 	if err != nil {
-		log.Fatalf("failed to %s %s: %v", flag.Arg(0), svcName, err)
+		log.Fatalf("failed to %s MyStocks: %v", flag.Arg(0), err)
 	}
 }
