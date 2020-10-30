@@ -78,13 +78,14 @@ realtime = new Vue({
   data: {
     index: document.getElementById('realtime').dataset.index,
     code: document.getElementById('realtime').dataset.code,
+    refresh: Number(document.getElementById('realtime').dataset.refresh) + 1,
     Stock: {}
   },
   created() { this.start() },
   methods: {
     start: function () {
       this.load();
-      setInterval(() => this.load(ct = true), 3000);
+      setInterval(() => this.load(ct = true), this.refresh * 1000);
     },
     load: function (ct = false) {
       if (checkTime() || !ct)

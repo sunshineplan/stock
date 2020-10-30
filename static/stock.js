@@ -45,6 +45,7 @@ mystocks = new Vue({
       stop: () => window.location = '/',
       update: (event, ui) => mystocks.reorder(ui)
     },
+    refresh: Number(document.getElementById('mystocks').dataset.refresh) + 1,
     autoUpdate: '',
     fetching: ''
   },
@@ -52,7 +53,7 @@ mystocks = new Vue({
   methods: {
     start: function () {
       this.load();
-      this.autoUpdate = setInterval(() => this.load(ct = true), 3000);
+      this.autoUpdate = setInterval(() => this.load(ct = true), this.refresh * 1000);
     },
     stop: function () {
       this.fetching.abort();

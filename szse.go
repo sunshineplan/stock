@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sunshineplan/utils/requests"
+	"github.com/sunshineplan/gohttp"
 )
 
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
@@ -38,7 +38,7 @@ func (s *szse) getRealtime() {
 			PicUpData [][]interface{}
 		}
 	}
-	if err := requests.GetWithClient(
+	if err := gohttp.GetWithClient(
 		"http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="+s.Code, nil, client).JSON(&result); err != nil {
 		log.Println("Failed to get szse:", err)
 		return
@@ -103,7 +103,7 @@ func (s *szse) chart() map[string]interface{} {
 
 func szseSuggest(keyword string) (suggests []suggest) {
 	var result []struct{ WordB, Value, Type string }
-	if err := requests.PostWithClient(
+	if err := gohttp.PostWithClient(
 		"http://www.szse.cn/api/search/suggest?keyword="+keyword, nil, nil, client).JSON(&result); err != nil {
 		log.Println("Failed to get szse suggest:", err)
 		return

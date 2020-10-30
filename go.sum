@@ -44,10 +44,12 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e h1:LSbaDwu1dcEbZ2JkQt0YoPPYo7OQ9ObN9A6Sbv/WnL0=
+github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e/go.mod h1:KaIWij1g41q0MnVSAe2pyReheMYhrHsMcwlBQGppv9A=
 github.com/sunshineplan/metadata v0.0.0-20200803020007-3027c995551f h1:Dnw0TpQdwhFUHOm+B0RnFmHtieePfmqOWcsEcHcMwco=
 github.com/sunshineplan/metadata v0.0.0-20200803020007-3027c995551f/go.mod h1:0MYYxq/eL+DQecrRyVk6YGjwf2DUEbQ96nREGYWojyE=
-github.com/sunshineplan/utils v0.0.0-20201012122925-e609018916b1 h1:YWE3jnXswbO6Vv/PfKH07thKhHIWA3gmeoy/2cigfNk=
-github.com/sunshineplan/utils v0.0.0-20201012122925-e609018916b1/go.mod h1:fJ8/Fjbd50RwQ8/wxBmBgkuDHfcXrCJu6c/iRsgkYok=
+github.com/sunshineplan/utils v0.0.0-20201030032830-048ca37deaf5 h1:5mNh7r1ZyW+DACqnHI191EbUmfatpzOIpnEPeQ0rSWI=
+github.com/sunshineplan/utils v0.0.0-20201030032830-048ca37deaf5/go.mod h1:fJ8/Fjbd50RwQ8/wxBmBgkuDHfcXrCJu6c/iRsgkYok=
 github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=
 github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVMw=
 github.com/ugorji/go/codec v1.1.7 h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs=
@@ -57,6 +59,7 @@ github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de/go.mod h1:irM
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a h1:vclmkQCjlDX5OydZ9wv8rBCcS0QyQY66Mpf/7BZbInM=
 golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 h1:0GoQqolDA55aaLxZyTzK/Y2ePZzZTUrRacwib7cNsYQ=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

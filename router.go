@@ -15,10 +15,10 @@ func showStock(c *gin.Context) {
 	code := c.Param("code")
 	stock := initStock(index, code)
 	if stock != nil {
-		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code})
+		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code, "refresh": refresh})
 		return
 	}
-	c.HTML(200, "chart.html", gin.H{"user": username, "index": "n/a", "code": "n/a"})
+	c.HTML(200, "chart.html", gin.H{"user": username, "index": "n/a", "code": "n/a", "refresh": refresh})
 }
 
 func myStocks(c *gin.Context) {

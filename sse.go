@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/sunshineplan/utils/requests"
+	"github.com/sunshineplan/gohttp"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
@@ -22,7 +22,7 @@ type sse struct {
 }
 
 func (s *sse) getRealtime() {
-	resp := requests.GetWithClient("http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code, nil, client)
+	resp := gohttp.GetWithClient("http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code, nil, client)
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
 		return
@@ -71,7 +71,7 @@ func (s *sse) getChart() {
 		PrevClose float64 `json:"prev_close"`
 		Line      [][]interface{}
 	}
-	if err := requests.GetWithClient(
+	if err := gohttp.GetWithClient(
 		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.Code, nil, client).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
 		return
@@ -125,7 +125,7 @@ func sseSuggest(keyword string) (suggests []suggest) {
 	}
 	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=" + keyword
 	headers := map[string]string{"Referer": "http://www.sse.com.cn/"}
-	if err := requests.GetWithClient(url, headers, client).JSON(&result); err != nil {
+	if err := gohttp.GetWithClient(url, headers, client).JSON(&result); err != nil {
 		log.Println("Failed to get sse suggest:", err)
 		return
 	}

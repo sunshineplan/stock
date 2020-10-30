@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
-	"time"
 )
 
-var client = &http.Client{Transport: &http.Transport{Proxy: nil}, Timeout: 2 * time.Second}
+var client = &http.Client{Transport: &http.Transport{Proxy: nil}}
 
 type stock interface {
 	realtime() map[string]interface{}

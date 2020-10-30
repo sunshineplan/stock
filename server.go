@@ -52,7 +52,7 @@ func run() {
 	router.GET("/", func(c *gin.Context) {
 		session := sessions.Default(c)
 		username := session.Get("username")
-		c.HTML(200, "mystocks.html", gin.H{"user": username})
+		c.HTML(200, "mystocks.html", gin.H{"user": username, "refresh": refresh})
 	})
 
 	auth := router.Group("/auth")

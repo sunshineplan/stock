@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sunshineplan/metadata"
@@ -23,6 +24,7 @@ var metadataConfig metadata.Config
 
 var self string
 var unix, host, port, logPath *string
+var refresh int
 
 var (
 	joinPath = filepath.Join
@@ -57,11 +59,13 @@ func main() {
 	unix = flag.String("unix", "", "UNIX-domain Socket")
 	host = flag.String("host", "0.0.0.0", "Server Host")
 	port = flag.String("port", "8888", "Server Port")
+	flag.IntVar(&refresh, "refresh", 3, "Refresh Interval")
 	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
 	logPath = flag.String("log", "", "Log Path")
 	iniflags.SetConfigFile(joinPath(dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.Parse()
+	client.Timeout = time.Duration(refresh) * time.Second
 
 	isIntSess, err := svc.IsAnInteractiveSession()
 	if err != nil {
