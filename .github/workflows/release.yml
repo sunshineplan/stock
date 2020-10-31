@@ -17,3 +17,16 @@ jobs:
       - name: Delete old release
         run: |
           git push --delete origin v1.0
+          sleep 10
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0
+          release_name: First Release
+          body: First Release
+          draft: false
+          prerelease: false
