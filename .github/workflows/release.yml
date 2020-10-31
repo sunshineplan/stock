@@ -21,7 +21,7 @@ jobs:
 
       - name: Get current date
         id: date
-        run: echo "::set-env name=TODAY::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       - name: Create Release
         id: create_release
@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v1.0
-          release_name: $TODAY
-          body: $TODAY
+          release_name: ${{ steps.date.outputs.date }}
+          body: ${{ steps.date.outputs.date }}
           draft: false
           prerelease: false
