@@ -14,10 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Delete old release
-        run: |
-          git push --delete origin v1.0
-          sleep 10
+      - name: Delete
+        uses: ame-yu/action-delete-latest-release@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current date
+        id: date
+        run: echo "::set-env name=TODAY::$(date +'%Y-%m-%d')"
 
       - name: Create Release
         id: create_release
@@ -26,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v1.0
-          release_name: First Release
-          body: First Release
+          release_name: $TODAY
+          body: $TODAY
           draft: false
           prerelease: false
