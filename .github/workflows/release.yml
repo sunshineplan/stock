@@ -14,17 +14,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Delete
-        uses: ame-yu/action-delete-latest-release@v2
+      - name: Delete Old Release
+        uses: actions/github-script@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: 'v1.0'
+            }).then(result => {
+              if (!result.data) {
+                  console.error("No release found, skip delete.");
+                  return
+              }
+              github.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: result.data.id
+              })
+            }).catch(
+                err => console.error(err);
+            )
 
-      - name: Get current date
+      - name: Get Current Date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(TZ=CST date +'%Y-%m-%d')"
 
       - name: Create Release
-        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
