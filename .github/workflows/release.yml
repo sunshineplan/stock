@@ -23,7 +23,6 @@ jobs:
               repo: context.repo.repo,
               tag: 'v1.0'
             })
-            console.log(release)
 
             if (!release.data) {
                 console.error("No release found, skip delete.");
