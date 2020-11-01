@@ -18,8 +18,9 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
+            let release
             try {
-              const release = await github.repos.getReleaseByTag({
+              release = await github.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 tag: 'v1.0'
