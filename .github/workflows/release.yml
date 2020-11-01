@@ -25,28 +25,3 @@ jobs:
             })
             console.log(release)
             
-            if (!release.data) {
-                console.error("No release found, skip delete.");
-                return
-            }
-
-            awaite github.repos.deleteRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: release.data.id
-            })
-
-      - name: Get Current Date
-        id: date
-        run: echo "::set-output name=date::$(TZ=CST date +'%Y-%m-%d')"
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v1.0
-          release_name: ${{ steps.date.outputs.date }}
-          body: ${{ steps.date.outputs.date }}
-          draft: false
-          prerelease: false
