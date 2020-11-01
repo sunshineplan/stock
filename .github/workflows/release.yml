@@ -17,7 +17,6 @@ jobs:
       - name: Delete Old Release
         uses: actions/github-script@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.repos.getReleaseByTag({
               owner: context.repo.owner,
