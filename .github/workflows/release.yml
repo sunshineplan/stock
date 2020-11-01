@@ -18,23 +18,23 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            github.repos.getReleaseByTag({
+            const release = await github.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag: 'v1.0'
-            }).then(result => {
-              if (!result.data) {
-                  console.error("No release found, skip delete.");
-                  return
-              }
-              github.repos.deleteRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: result.data.id
-              })
-            }).catch(
-                err => console.error(err);
-            )
+            })
+            console.log(result)
+            
+            if (!result.data) {
+                console.error("No release found, skip delete.");
+                return
+            }
+
+            awaite github.repos.deleteRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id
+            })
 
       - name: Get Current Date
         id: date
