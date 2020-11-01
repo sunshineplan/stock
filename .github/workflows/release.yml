@@ -25,3 +25,7 @@ jobs:
             })
             console.log(release)
             
+            if (!release.data) {
+                console.error("No release found, skip delete.");
+                return
+            }
