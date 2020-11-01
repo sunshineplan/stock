@@ -18,15 +18,15 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            const release = await github.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: 'v1.0'
-            })
-
-            if (!release.data) {
-                console.error("No release found, skip delete.");
-                return
+            try {
+              const release = await github.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: 'test'
+              })
+            } catch (e) {
+              console.error(e)
+              return
             }
 
             await github.repos.deleteRelease({
