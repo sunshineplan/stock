@@ -41,6 +41,12 @@ jobs:
               release_id: release.data.id
             })
 
+            await github.repos.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'tags/v1.0'
+            })
+
       - name: Get Current Date
         uses: actions/github-script@v3
         id: date
