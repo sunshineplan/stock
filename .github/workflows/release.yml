@@ -41,7 +41,7 @@ jobs:
               release_id: release.data.id
             })
 
-            await github.repos.deleteRef({
+            await github.git.deleteRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'tags/v1.0'
