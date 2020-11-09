@@ -9,21 +9,24 @@ import (
 var client = &http.Client{Transport: &http.Transport{Proxy: nil}}
 
 type stock interface {
-	realtime() map[string]interface{}
-	chart() map[string]interface{}
+	realtime() realtime
+	chart() chart
 }
 
 type realtime struct {
-	now     float64
-	change  float64
-	percent string
-	sell5   []sellbuy
-	buy5    []sellbuy
-	high    float64
-	low     float64
-	open    float64
-	last    float64
-	update  string
+	Index   string    `json:"index"`
+	Code    string    `json:"code"`
+	Name    string    `json:"name"`
+	Now     float64   `json:"now"`
+	Change  float64   `json:"change"`
+	Percent string    `json:"percent"`
+	Sell5   []sellbuy `json:"sell5"`
+	Buy5    []sellbuy `json:"buy5"`
+	High    float64   `json:"high"`
+	Low     float64   `json:"low"`
+	Open    float64   `json:"open"`
+	Last    float64   `json:"last"`
+	Update  string    `json:"update"`
 }
 
 type sellbuy struct {
@@ -32,7 +35,8 @@ type sellbuy struct {
 }
 
 type chart struct {
-	data []point
+	Last float64 `json:"last"`
+	Data []point `json:"chart"`
 }
 
 type point struct {
@@ -63,18 +67,18 @@ func initStock(index, code string) (s stock) {
 	return
 }
 
-func doGetRealtime(index, code string) map[string]interface{} {
+func doGetRealtime(index, code string) realtime {
 	s := initStock(index, code)
 	return s.realtime()
 }
 
-func doGetChart(index, code string) map[string]interface{} {
+func doGetChart(index, code string) chart {
 	s := initStock(index, code)
 	return s.chart()
 }
 
-func doGetRealtimes(s []stock) []map[string]interface{} {
-	r := make([]map[string]interface{}, len(s))
+func doGetRealtimes(s []stock) []realtime {
+	r := make([]realtime, len(s))
 	var wg sync.WaitGroup
 	for i, v := range s {
 		wg.Add(1)

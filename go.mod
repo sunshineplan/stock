@@ -11,8 +11,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.3
 	github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e
-	github.com/sunshineplan/metadata v0.0.0-20200803020007-3027c995551f
-	github.com/sunshineplan/utils v0.0.0-20201030032830-048ca37deaf5
+	github.com/sunshineplan/utils v0.0.0-20201108103116-a09bb93c699b
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418

@@ -16,7 +16,6 @@ const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 
 type sse struct {
 	Code     string
-	Name     string
 	Realtime realtime
 	Chart    chart
 }
@@ -42,15 +41,17 @@ func (s *sse) getRealtime() {
 		log.Println("Unmarshal json Error:", err)
 		return
 	}
-	s.Name = r.Snap[0].(string)
-	s.Realtime.now = r.Snap[5].(float64)
-	s.Realtime.change = r.Snap[6].(float64)
-	s.Realtime.percent = fmt.Sprintf("%.2f", r.Snap[7].(float64)) + "%"
-	s.Realtime.high = r.Snap[3].(float64)
-	s.Realtime.low = r.Snap[4].(float64)
-	s.Realtime.open = r.Snap[2].(float64)
-	s.Realtime.last = r.Snap[1].(float64)
-	s.Realtime.update = fmt.Sprintf("%d.%d", r.Date, r.Time)
+	s.Realtime.Index = "SSE"
+	s.Realtime.Code = s.Code
+	s.Realtime.Name = r.Snap[0].(string)
+	s.Realtime.Now = r.Snap[5].(float64)
+	s.Realtime.Change = r.Snap[6].(float64)
+	s.Realtime.Percent = fmt.Sprintf("%.2f", r.Snap[7].(float64)) + "%"
+	s.Realtime.High = r.Snap[3].(float64)
+	s.Realtime.Low = r.Snap[4].(float64)
+	s.Realtime.Open = r.Snap[2].(float64)
+	s.Realtime.Last = r.Snap[1].(float64)
+	s.Realtime.Update = fmt.Sprintf("%d.%d", r.Date, r.Time)
 	var sell5, buy5 []sellbuy
 	for i := 0; i < 10; i += 2 {
 		sell5 = append(sell5,
@@ -59,10 +60,10 @@ func (s *sse) getRealtime() {
 			sellbuy{r.Snap[len(r.Snap)-2].([]interface{})[i].(float64), int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64))})
 	}
 	if !reflect.DeepEqual(sell5, []sellbuy{{}, {}, {}, {}, {}}) {
-		s.Realtime.sell5 = sell5
+		s.Realtime.Sell5 = sell5
 	}
 	if !reflect.DeepEqual(buy5, []sellbuy{{}, {}, {}, {}, {}}) {
-		s.Realtime.buy5 = buy5
+		s.Realtime.Buy5 = buy5
 	}
 }
 
@@ -76,7 +77,7 @@ func (s *sse) getChart() {
 		log.Println("Failed to get sse chart:", err)
 		return
 	}
-	s.Realtime.last = r.PrevClose
+	s.Chart.Last = r.PrevClose
 	t := time.Now()
 	var sessions []string
 	for i := 0; i < 121; i++ {
@@ -88,35 +89,18 @@ func (s *sse) getChart() {
 			sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
 	for i, v := range r.Line {
-		s.Chart.data = append(s.Chart.data, point{X: sessions[i], Y: v[0].(float64)})
+		s.Chart.Data = append(s.Chart.Data, point{X: sessions[i], Y: v[0].(float64)})
 	}
 }
 
-func (s *sse) realtime() map[string]interface{} {
+func (s *sse) realtime() realtime {
 	s.getRealtime()
-	return map[string]interface{}{
-		"index":   "SSE",
-		"code":    s.Code,
-		"name":    s.Name,
-		"now":     s.Realtime.now,
-		"change":  s.Realtime.change,
-		"percent": s.Realtime.percent,
-		"sell5":   s.Realtime.sell5,
-		"buy5":    s.Realtime.buy5,
-		"high":    s.Realtime.high,
-		"low":     s.Realtime.low,
-		"open":    s.Realtime.open,
-		"last":    s.Realtime.last,
-		"update":  s.Realtime.update,
-	}
+	return s.Realtime
 }
 
-func (s *sse) chart() map[string]interface{} {
+func (s *sse) chart() chart {
 	s.getChart()
-	return map[string]interface{}{
-		"last":  s.Realtime.last,
-		"chart": s.Chart.data,
-	}
+	return s.Chart
 }
 
 func sseSuggest(keyword string) (suggests []suggest) {

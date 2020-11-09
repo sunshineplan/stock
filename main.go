@@ -6,25 +6,23 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/sunshineplan/metadata"
 	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/httpsvr"
+	"github.com/sunshineplan/utils/metadata"
 	"github.com/sunshineplan/utils/winsvc"
 	"github.com/vharitonsky/iniflags"
 )
 
-// OS is the running program's operating system
-const OS = runtime.GOOS
-
-var metadataConfig metadata.Config
-
 var self string
-var unix, host, port, logPath *string
+var logPath *string
 var refresh int
+var svc winsvc.Service
+var meta metadata.Server
+var server httpsvr.Server
 
 var (
 	joinPath = filepath.Join
@@ -40,9 +38,9 @@ func init() {
 	os.MkdirAll(joinPath(dir(self), "instance"), 0755)
 	sqlite = joinPath(dir(self), "instance/mystocks.db")
 	sqlitePy = joinPath(dir(self), "scripts/sqlite.py")
-	winsvc.SetServiceName("MyStocks")
-	winsvc.SetDescription("MyStocks Service")
-	winsvc.SetExecution(run)
+	svc.Name = "MyStocks"
+	svc.Desc = "MyStocks Service"
+	svc.Exec = run
 }
 
 func usage(errmsg string) {
@@ -56,12 +54,12 @@ usage: %s <command>
 }
 
 func main() {
-	flag.StringVar(&metadataConfig.Server, "server", "", "Metadata Server Address")
-	flag.StringVar(&metadataConfig.VerifyHeader, "header", "", "Verify Header Header Name")
-	flag.StringVar(&metadataConfig.VerifyValue, "value", "", "Verify Header Value")
-	unix = flag.String("unix", "", "UNIX-domain Socket")
-	host = flag.String("host", "0.0.0.0", "Server Host")
-	port = flag.String("port", "8888", "Server Port")
+	flag.StringVar(&meta.Addr, "server", "", "Metadata Server Address")
+	flag.StringVar(&meta.Header, "header", "", "Verify Header Header Name")
+	flag.StringVar(&meta.Value, "value", "", "Verify Header Value")
+	flag.StringVar(&server.Unix, "unix", "", "UNIX-domain Socket")
+	flag.StringVar(&server.Host, "host", "0.0.0.0", "Server Host")
+	flag.StringVar(&server.Port, "port", "12345", "Server Port")
 	flag.IntVar(&refresh, "refresh", 3, "Refresh Interval")
 	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
 	logPath = flag.String("log", "", "Log Path")
@@ -71,7 +69,7 @@ func main() {
 	client.Timeout = time.Duration(refresh) * time.Second
 
 	if winsvc.IsWindowsService() {
-		winsvc.RunService(false)
+		svc.Run(false)
 		return
 	}
 
@@ -84,13 +82,13 @@ func main() {
 		case "run", "debug":
 			run()
 		case "install":
-			err = winsvc.InstallService()
+			err = svc.Install()
 		case "remove":
-			err = winsvc.RemoveService()
+			err = svc.Remove()
 		case "start":
-			err = winsvc.StartService()
+			err = svc.Start()
 		case "stop":
-			err = winsvc.StopService()
+			err = svc.Stop()
 		case "backup":
 			backup()
 		case "init":

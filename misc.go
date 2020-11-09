@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -51,22 +49,29 @@ func deleteUser(username string) {
 
 func backup() {
 	log.Print("Start!")
-	m, err := metadataConfig.Get("mystocks_backup")
-	if err != nil {
+	var config struct {
+		Host              string
+		Port              int
+		Account, Password string
+		To                []string
+	}
+	if err := meta.Get("mystocks_backup", &config); err != nil {
 		log.Fatalln("Failed to get mystocks_backup metadata:", err)
 	}
-	var mailSetting mail.Setting
-	err = json.Unmarshal(m, &mailSetting)
-	if err != nil {
-		log.Fatalln("Failed to unmarshal json:", err)
+	dialer := mail.Dialer{
+		Host:     config.Host,
+		Port:     config.Port,
+		Account:  config.Account,
+		Password: config.Password,
 	}
-
 	file := dump()
 	defer os.Remove(file)
-	if err := mailSetting.Send(
-		fmt.Sprintf("My stocks Backup-%s", time.Now().Format("20060102")),
-		"",
-		&mail.Attachment{FilePath: file, Filename: "database"},
+	if err := dialer.Send(
+		&mail.Message{
+			To:          config.To,
+			Subject:     "My Stocks Backup-" + time.Now().Format("20060102"),
+			Attachments: []*mail.Attachment{{Path: file, Filename: "database"}},
+		},
 	); err != nil {
 		log.Fatalln("Failed to send mail:", err)
 	}

@@ -13,7 +13,6 @@ const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 
 type szse struct {
 	Code     string
-	Name     string
 	Realtime realtime
 	Chart    chart
 }
@@ -47,15 +46,17 @@ func (s *szse) getRealtime() {
 		log.Println("Data code not equal zero.")
 		return
 	}
-	s.Name = result.Data.Name
-	s.Realtime.now, _ = strconv.ParseFloat(result.Data.Now, 64)
-	s.Realtime.change, _ = strconv.ParseFloat(result.Data.Delta, 64)
-	s.Realtime.percent = result.Data.DeltaPercent + "%"
-	s.Realtime.high, _ = strconv.ParseFloat(result.Data.High, 64)
-	s.Realtime.low, _ = strconv.ParseFloat(result.Data.Low, 64)
-	s.Realtime.open, _ = strconv.ParseFloat(result.Data.Open, 64)
-	s.Realtime.last, _ = strconv.ParseFloat(result.Data.Close, 64)
-	s.Realtime.update = result.Data.MarketTime
+	s.Realtime.Index = "SZSE"
+	s.Realtime.Code = s.Code
+	s.Realtime.Name = result.Data.Name
+	s.Realtime.Now, _ = strconv.ParseFloat(result.Data.Now, 64)
+	s.Realtime.Change, _ = strconv.ParseFloat(result.Data.Delta, 64)
+	s.Realtime.Percent = result.Data.DeltaPercent + "%"
+	s.Realtime.High, _ = strconv.ParseFloat(result.Data.High, 64)
+	s.Realtime.Low, _ = strconv.ParseFloat(result.Data.Low, 64)
+	s.Realtime.Open, _ = strconv.ParseFloat(result.Data.Open, 64)
+	s.Realtime.Last, _ = strconv.ParseFloat(result.Data.Close, 64)
+	s.Realtime.Update = result.Data.MarketTime
 	var sell5 []sellbuy
 	var buy5 []sellbuy
 	for i, v := range result.Data.Sellbuy5 {
@@ -66,39 +67,23 @@ func (s *szse) getRealtime() {
 			buy5 = append(buy5, sellbuy{Price: price, Volume: v.Volume})
 		}
 	}
-	s.Realtime.sell5 = sell5
-	s.Realtime.buy5 = buy5
+	s.Realtime.Sell5 = sell5
+	s.Realtime.Buy5 = buy5
+	s.Chart.Last = s.Realtime.Last
 	for _, i := range result.Data.PicUpData {
 		y, _ := strconv.ParseFloat(i[1].(string), 64)
-		s.Chart.data = append(s.Chart.data, point{X: i[0].(string), Y: y})
+		s.Chart.Data = append(s.Chart.Data, point{X: i[0].(string), Y: y})
 	}
 }
 
-func (s *szse) realtime() map[string]interface{} {
+func (s *szse) realtime() realtime {
 	s.getRealtime()
-	return map[string]interface{}{
-		"index":   "SZSE",
-		"code":    s.Code,
-		"name":    s.Name,
-		"now":     s.Realtime.now,
-		"change":  s.Realtime.change,
-		"percent": s.Realtime.percent,
-		"sell5":   s.Realtime.sell5,
-		"buy5":    s.Realtime.buy5,
-		"high":    s.Realtime.high,
-		"low":     s.Realtime.low,
-		"open":    s.Realtime.open,
-		"last":    s.Realtime.last,
-		"update":  s.Realtime.update,
-	}
+	return s.Realtime
 }
 
-func (s *szse) chart() map[string]interface{} {
+func (s *szse) chart() chart {
 	s.getRealtime()
-	return map[string]interface{}{
-		"last":  s.Realtime.last,
-		"chart": s.Chart.data,
-	}
+	return s.Chart
 }
 
 func szseSuggest(keyword string) (suggests []suggest) {
