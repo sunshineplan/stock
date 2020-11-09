@@ -119,35 +119,37 @@ func (t *TXZQ) GetChart() stock.Chart {
 
 // Suggest returns sse and szse stock suggests according the keyword.
 func Suggest(keyword string) (suggests []stock.Suggest) {
-	hint := gohttp.GetWithClient(
-		"http://smartbox.gtimg.cn/s3/?t=gp&q="+keyword,
+	var result struct{ Data [][]string }
+	if err := gohttp.GetWithClient(
+		"http://smartbox.gtimg.cn/s4/?t=gp&q="+keyword,
 		nil,
 		&http.Client{
 			Transport: &http.Transport{Proxy: nil},
 			Timeout:   Timeout,
-		},
-	).String()
-	hint = strings.Split(hint, `"`)[1]
+		}).JSON(&result); err != nil {
+		log.Println("Failed to get txqz suggest:", err)
+		return
+	}
 	sse := regexp.MustCompile(ssePattern)
 	szse := regexp.MustCompile(szsePattern)
-	for _, i := range strings.Split(hint, "^") {
-		switch h := strings.Split(i, "~"); h[0] {
+	for _, i := range result.Data {
+		switch i[0] {
 		case "sh":
-			if sse.MatchString(h[1]) {
+			if sse.MatchString(i[1]) {
 				suggests = append(suggests, stock.Suggest{
 					Index: "SSE",
-					Code:  h[1],
-					Name:  h[2],
-					Type:  h[4],
+					Code:  i[1],
+					Name:  i[2],
+					Type:  i[4],
 				})
 			}
 		case "sz":
-			if szse.MatchString(h[1]) {
+			if szse.MatchString(i[1]) {
 				suggests = append(suggests, stock.Suggest{
 					Index: "SZSE",
-					Code:  h[1],
-					Name:  h[2],
-					Type:  h[4],
+					Code:  i[1],
+					Name:  i[2],
+					Type:  i[4],
 				})
 			}
 		}
