@@ -26,7 +26,7 @@ type SSE struct {
 	Chart    stock.Chart
 }
 
-func (s *SSE) getRealtime() {
+func (s *SSE) getRealtime() *SSE {
 	s.Realtime.Index = "SSE"
 	s.Realtime.Code = s.Code
 	resp := gohttp.GetWithClient(
@@ -38,13 +38,13 @@ func (s *SSE) getRealtime() {
 		})
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
-		return
+		return s
 	}
 	d := simplifiedchinese.GBK.NewDecoder()
 	utf8data, err := d.Bytes(resp.Bytes())
 	if err != nil {
 		log.Println("Fail to convert gb2312:", err)
-		return
+		return s
 	}
 	var r struct {
 		Date int
@@ -53,7 +53,7 @@ func (s *SSE) getRealtime() {
 	}
 	if err := json.Unmarshal(utf8data, &r); err != nil {
 		log.Println("Unmarshal json Error:", err)
-		return
+		return s
 	}
 	s.Realtime.Name = r.Snap[0].(string)
 	s.Realtime.Now = r.Snap[5].(float64)
@@ -85,9 +85,10 @@ func (s *SSE) getRealtime() {
 	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Buy5 = buy5
 	}
+	return s
 }
 
-func (s *SSE) getChart() {
+func (s *SSE) getChart() *SSE {
 	var r struct {
 		PrevClose float64 `json:"prev_close"`
 		Line      [][]interface{}
@@ -100,7 +101,7 @@ func (s *SSE) getChart() {
 			Timeout:   Timeout,
 		}).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
-		return
+		return s
 	}
 	s.Chart.Last = r.PrevClose
 	t := time.Now()
@@ -116,18 +117,17 @@ func (s *SSE) getChart() {
 	for i, v := range r.Line {
 		s.Chart.Data = append(s.Chart.Data, stock.Point{X: sessions[i], Y: v[0].(float64)})
 	}
+	return s
 }
 
-// GetRealtime gets ths sse stock's realtime information.
+// GetRealtime gets the sse stock's realtime information.
 func (s *SSE) GetRealtime() stock.Realtime {
-	s.getRealtime()
-	return s.Realtime
+	return s.getRealtime().Realtime
 }
 
-// GetChart gets ths sse stock's chart data.
+// GetChart gets the sse stock's chart data.
 func (s *SSE) GetChart() stock.Chart {
-	s.getChart()
-	return s.Chart
+	return s.getChart().Chart
 }
 
 // Suggest returns sse stock suggests according the keyword.

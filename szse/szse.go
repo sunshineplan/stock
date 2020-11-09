@@ -24,7 +24,7 @@ type SZSE struct {
 	Chart    stock.Chart
 }
 
-func (s *SZSE) getRealtime() {
+func (s *SZSE) get() *SZSE {
 	s.Realtime.Index = "SZSE"
 	s.Realtime.Code = s.Code
 	var result struct {
@@ -54,11 +54,11 @@ func (s *SZSE) getRealtime() {
 			Timeout:   Timeout,
 		}).JSON(&result); err != nil {
 		log.Println("Failed to get szse:", err)
-		return
+		return s
 	}
 	if result.Code != "0" {
 		log.Println("Data code not equal zero.")
-		return
+		return s
 	}
 	s.Realtime.Name = result.Data.Name
 	s.Realtime.Now, _ = strconv.ParseFloat(result.Data.Now, 64)
@@ -86,18 +86,17 @@ func (s *SZSE) getRealtime() {
 		y, _ := strconv.ParseFloat(i[1].(string), 64)
 		s.Chart.Data = append(s.Chart.Data, stock.Point{X: i[0].(string), Y: y})
 	}
+	return s
 }
 
-// GetRealtime gets ths szse stock's realtime information.
+// GetRealtime gets the szse stock's realtime information.
 func (s *SZSE) GetRealtime() stock.Realtime {
-	s.getRealtime()
-	return s.Realtime
+	return s.get().Realtime
 }
 
-// GetChart gets ths szse stock's chart data.
+// GetChart gets the szse stock's chart data.
 func (s *SZSE) GetChart() stock.Chart {
-	s.getRealtime()
-	return s.Chart
+	return s.get().Chart
 }
 
 // Suggest returns szse stock suggests according the keyword.

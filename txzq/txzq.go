@@ -1,0 +1,165 @@
+package txzq
+
+import (
+	"log"
+	"net/http"
+	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/sunshineplan/gohttp"
+	"github.com/sunshineplan/stock"
+)
+
+const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
+const szsePattern = `(00[0-3]|159|300|399)\d{3}`
+
+// Timeout specifies a time limit for requests.
+var Timeout time.Duration
+
+// TXZQ represents 腾讯证券.
+type TXZQ struct {
+	Index    string
+	Code     string
+	Realtime stock.Realtime
+	Chart    stock.Chart
+}
+
+func (t *TXZQ) get() *TXZQ {
+	t.Realtime.Index = t.Index
+	t.Realtime.Code = t.Code
+	var stk string
+	switch strings.ToLower(t.Index) {
+	case "sse":
+		stk = "sh" + t.Code
+	case "szse":
+		stk = "sz" + t.Code
+	default:
+		return t
+	}
+	resp := gohttp.GetWithClient(
+		"http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+stk,
+		nil,
+		&http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		})
+	if resp.Error != nil {
+		log.Println("Failed to get txzq:", resp.Error)
+		return t
+	}
+	var r struct{ Data map[string]interface{} }
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
+		return t
+	}
+	data, ok := r.Data[stk]
+	if !ok {
+		log.Println("Failed to get this stock:", stk)
+		return t
+	}
+	realtime, ok := data.(map[string]interface{})["qt"].(map[string]interface{})[stk].([]interface{})
+	if !ok {
+		log.Println("Failed to get this stock realtime")
+		return t
+	}
+	t.Realtime.Name = realtime[1].(string)
+	t.Realtime.Now, _ = strconv.ParseFloat(realtime[3].(string), 64)
+	t.Realtime.Change, _ = strconv.ParseFloat(realtime[31].(string), 64)
+	t.Realtime.Percent = realtime[32].(string) + "%"
+	t.Realtime.High, _ = strconv.ParseFloat(realtime[33].(string), 64)
+	t.Realtime.Low, _ = strconv.ParseFloat(realtime[34].(string), 64)
+	t.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
+	t.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
+	t.Realtime.Update = realtime[30].(string)
+	var buy5, sell5 []stock.SellBuy
+	for i := 9; i < 19; i += 2 {
+		price, _ := strconv.ParseFloat(realtime[i].(string), 64)
+		volume, _ := strconv.Atoi(realtime[i+1].(string))
+		buy5 = append(buy5, stock.SellBuy{Price: price, Volume: volume})
+	}
+	for i := 19; i < 29; i += 2 {
+		price, _ := strconv.ParseFloat(realtime[i].(string), 64)
+		volume, _ := strconv.Atoi(realtime[i+1].(string))
+		sell5 = append(sell5, stock.SellBuy{Price: price, Volume: volume})
+	}
+	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+		t.Realtime.Sell5 = sell5
+	}
+	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+		t.Realtime.Buy5 = buy5
+	}
+
+	chart, ok := data.(map[string]interface{})["data"].(map[string]interface{})["data"].([]interface{})
+	if !ok {
+		log.Println("Failed to get this stock chart")
+		return t
+	}
+	t.Chart.Last = t.Realtime.Last
+	for _, i := range chart {
+		point := strings.Split(i.(string), " ")
+		x := point[0][0:2] + ":" + point[0][2:4]
+		y, _ := strconv.ParseFloat(point[1], 64)
+		t.Chart.Data = append(t.Chart.Data, stock.Point{X: x, Y: y})
+	}
+	return t
+}
+
+// GetRealtime gets the stock's realtime information.
+func (t *TXZQ) GetRealtime() stock.Realtime {
+	return t.get().Realtime
+}
+
+// GetChart gets the stock's chart data.
+func (t *TXZQ) GetChart() stock.Chart {
+	return t.get().Chart
+}
+
+// Suggest returns sse and szse stock suggests according the keyword.
+func Suggest(keyword string) (suggests []stock.Suggest) {
+	hint := gohttp.GetWithClient(
+		"http://smartbox.gtimg.cn/s3/?t=gp&q="+keyword,
+		nil,
+		&http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		},
+	).String()
+	hint = strings.Split(hint, `"`)[1]
+	sse := regexp.MustCompile(ssePattern)
+	szse := regexp.MustCompile(szsePattern)
+	for _, i := range strings.Split(hint, "^") {
+		switch h := strings.Split(i, "~"); h[0] {
+		case "sh":
+			if sse.MatchString(h[1]) {
+				suggests = append(suggests, stock.Suggest{
+					Index: "SSE",
+					Code:  h[1],
+					Name:  h[2],
+					Type:  h[4],
+				})
+			}
+		case "sz":
+			if szse.MatchString(h[1]) {
+				suggests = append(suggests, stock.Suggest{
+					Index: "SZSE",
+					Code:  h[1],
+					Name:  h[2],
+					Type:  h[4],
+				})
+			}
+		}
+	}
+	return
+}
+
+func init() {
+	stock.RegisterStock("sse", ssePattern, func(code string) stock.Stock {
+		return &TXZQ{Index: "SSE", Code: code}
+	})
+	stock.RegisterStock("szse", ssePattern, func(code string) stock.Stock {
+		return &TXZQ{Index: "SZSE", Code: code}
+	})
+}
