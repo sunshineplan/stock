@@ -46,6 +46,8 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e h1:LSbaDwu1dcEbZ2JkQt0YoPPYo7OQ9ObN9A6Sbv/WnL0=
 github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e/go.mod h1:KaIWij1g41q0MnVSAe2pyReheMYhrHsMcwlBQGppv9A=
+github.com/sunshineplan/mystocks-go v0.0.0-20201109033149-ef496b481b1a h1:CMdums9lCR9FDuv67RLuDDKm5c+xVwBsdsK63j6zVcU=
+github.com/sunshineplan/mystocks-go v0.0.0-20201109033149-ef496b481b1a/go.mod h1:rg/2sFVIreJPeBbb7EV7xDR4jRAt2VPQQOdpSn3/8Z0=
 github.com/sunshineplan/utils v0.0.0-20201108103116-a09bb93c699b h1:1CEE6DsR1xUDPAN+zqyRyWTrsK4UuRZMVgoo9gU+cL0=
 github.com/sunshineplan/utils v0.0.0-20201108103116-a09bb93c699b/go.mod h1:fJ8/Fjbd50RwQ8/wxBmBgkuDHfcXrCJu6c/iRsgkYok=
 github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=

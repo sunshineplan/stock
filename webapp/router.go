@@ -6,6 +6,9 @@ import (
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/sunshineplan/stock"
+	"github.com/sunshineplan/stock/sse"
+	"github.com/sunshineplan/stock/szse"
 )
 
 func showStock(c *gin.Context) {
@@ -13,8 +16,7 @@ func showStock(c *gin.Context) {
 	username := session.Get("username")
 	index := c.Param("index")
 	code := c.Param("code")
-	stock := initStock(index, code)
-	if stock != nil {
+	if stock.InitStock(index, code) != nil {
 		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code, "refresh": refresh})
 		return
 	}
@@ -51,7 +53,7 @@ func myStocks(c *gin.Context) {
 		return
 	}
 	defer rows.Close()
-	var stocks []stock
+	var stocks []stock.Stock
 	for rows.Next() {
 		var index, code string
 		if err := rows.Scan(&index, &code); err != nil {
@@ -59,14 +61,19 @@ func myStocks(c *gin.Context) {
 			c.String(500, "")
 			return
 		}
-		stock := initStock(index, code)
-		stocks = append(stocks, stock)
+		stocks = append(stocks, stock.InitStock(index, code))
 	}
-	c.JSON(200, doGetRealtimes(stocks))
+	c.JSON(200, stock.Realtimes(stocks))
 }
 
 func indices(c *gin.Context) {
-	indices := doGetRealtimes([]stock{&sse{Code: "000001"}, &szse{Code: "399001"}, &szse{Code: "399006"}, &szse{Code: "399005"}})
+	indices := stock.Realtimes(
+		[]stock.Stock{
+			stock.InitStock("SSE", "000001"),
+			stock.InitStock("SZSE", "399001"),
+			stock.InitStock("SZSE", "399006"),
+			stock.InitStock("SZSE", "399005"),
+		})
 	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中": indices[3]})
 }
 
@@ -75,14 +82,14 @@ func getStock(c *gin.Context) {
 	code := c.Query("code")
 	q := c.Query("q")
 
-	stock := initStock(index, code)
+	s := stock.InitStock(index, code)
 
 	if q == "realtime" {
-		realtime := stock.realtime()
+		realtime := s.GetRealtime()
 		c.JSON(200, realtime)
 		return
 	} else if q == "chart" {
-		chart := stock.chart()
+		chart := s.GetChart()
 		c.JSON(200, chart)
 		return
 	}
@@ -91,9 +98,9 @@ func getStock(c *gin.Context) {
 
 func getSuggest(c *gin.Context) {
 	keyword := c.Query("keyword")
-	sse := sseSuggest(keyword)
-	szse := szseSuggest(keyword)
-	c.JSON(200, append(sse, szse...))
+	s1 := sse.Suggest(keyword)
+	s2 := szse.Suggest(keyword)
+	c.JSON(200, append(s1, s2...))
 }
 
 func star(c *gin.Context) {

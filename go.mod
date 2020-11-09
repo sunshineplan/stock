@@ -1,4 +1,4 @@
-module github.com/sunshineplan/mystocks-go
+module github.com/sunshineplan/stock
 
 go 1.15
 
@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.3
 	github.com/sunshineplan/gohttp v0.0.0-20201029090050-22b25959784e
+	github.com/sunshineplan/mystocks-go v0.0.0-20201109033149-ef496b481b1a // indirect
 	github.com/sunshineplan/utils v0.0.0-20201108103116-a09bb93c699b
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a

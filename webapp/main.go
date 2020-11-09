@@ -10,6 +10,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sunshineplan/stock/szse"
 	"github.com/sunshineplan/utils"
 	"github.com/sunshineplan/utils/httpsvr"
 	"github.com/sunshineplan/utils/metadata"
@@ -66,7 +67,7 @@ func main() {
 	iniflags.SetConfigFile(joinPath(dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.Parse()
-	client.Timeout = time.Duration(refresh) * time.Second
+	szse.Timeout = time.Duration(refresh) * time.Second
 
 	if winsvc.IsWindowsService() {
 		svc.Run(false)

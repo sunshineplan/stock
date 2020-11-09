@@ -1,27 +1,39 @@
-package main
+package sse
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"reflect"
 	"regexp"
 	"time"
 
 	"github.com/sunshineplan/gohttp"
+	"github.com/sunshineplan/stock"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 
-type sse struct {
+// Timeout specifies a time limit for requests.
+var Timeout time.Duration
+
+// SSE represents Shanghai Stock Exchange.
+type SSE struct {
 	Code     string
-	Realtime realtime
-	Chart    chart
+	Realtime stock.Realtime
+	Chart    stock.Chart
 }
 
-func (s *sse) getRealtime() {
-	resp := gohttp.GetWithClient("http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code, nil, client)
+func (s *SSE) getRealtime() {
+	resp := gohttp.GetWithClient(
+		"http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code,
+		nil,
+		&http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		})
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
 		return
@@ -52,28 +64,41 @@ func (s *sse) getRealtime() {
 	s.Realtime.Open = r.Snap[2].(float64)
 	s.Realtime.Last = r.Snap[1].(float64)
 	s.Realtime.Update = fmt.Sprintf("%d.%d", r.Date, r.Time)
-	var sell5, buy5 []sellbuy
+	var sell5, buy5 []stock.SellBuy
 	for i := 0; i < 10; i += 2 {
-		sell5 = append(sell5,
-			sellbuy{r.Snap[len(r.Snap)-1].([]interface{})[i].(float64), int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64))})
-		buy5 = append(buy5,
-			sellbuy{r.Snap[len(r.Snap)-2].([]interface{})[i].(float64), int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64))})
+		sell5 = append(
+			sell5,
+			stock.SellBuy{
+				Price:  r.Snap[len(r.Snap)-1].([]interface{})[i].(float64),
+				Volume: int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64)),
+			})
+		buy5 = append(
+			buy5,
+			stock.SellBuy{
+				Price:  r.Snap[len(r.Snap)-2].([]interface{})[i].(float64),
+				Volume: int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64)),
+			})
 	}
-	if !reflect.DeepEqual(sell5, []sellbuy{{}, {}, {}, {}, {}}) {
+	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Sell5 = sell5
 	}
-	if !reflect.DeepEqual(buy5, []sellbuy{{}, {}, {}, {}, {}}) {
+	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Buy5 = buy5
 	}
 }
 
-func (s *sse) getChart() {
+func (s *SSE) getChart() {
 	var r struct {
 		PrevClose float64 `json:"prev_close"`
 		Line      [][]interface{}
 	}
 	if err := gohttp.GetWithClient(
-		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.Code, nil, client).JSON(&r); err != nil {
+		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.Code,
+		nil,
+		&http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		}).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
 		return
 	}
@@ -89,34 +114,41 @@ func (s *sse) getChart() {
 			sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
 	for i, v := range r.Line {
-		s.Chart.Data = append(s.Chart.Data, point{X: sessions[i], Y: v[0].(float64)})
+		s.Chart.Data = append(s.Chart.Data, stock.Point{X: sessions[i], Y: v[0].(float64)})
 	}
 }
 
-func (s *sse) realtime() realtime {
+// GetRealtime gets ths sse stock's realtime information.
+func (s *SSE) GetRealtime() stock.Realtime {
 	s.getRealtime()
 	return s.Realtime
 }
 
-func (s *sse) chart() chart {
+// GetChart gets ths sse stock's chart data.
+func (s *SSE) GetChart() stock.Chart {
 	s.getChart()
 	return s.Chart
 }
 
-func sseSuggest(keyword string) (suggests []suggest) {
+// Suggest returns sse stock suggests according the keyword.
+func Suggest(keyword string) (suggests []stock.Suggest) {
 	var result struct {
 		Data []struct{ Category, Code, Word string }
 	}
-	url := "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword=" + keyword
-	headers := map[string]string{"Referer": "http://www.sse.com.cn/"}
-	if err := gohttp.GetWithClient(url, headers, client).JSON(&result); err != nil {
+	if err := gohttp.GetWithClient(
+		"http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="+keyword,
+		gohttp.H{"Referer": "http://www.sse.com.cn/"},
+		&http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		}).JSON(&result); err != nil {
 		log.Println("Failed to get sse suggest:", err)
 		return
 	}
 	re := regexp.MustCompile(ssePattern)
 	for _, i := range result.Data {
 		if re.MatchString(i.Code) {
-			suggests = append(suggests, suggest{
+			suggests = append(suggests, stock.Suggest{
 				Index: "SSE",
 				Code:  i.Code,
 				Name:  i.Word,
@@ -125,4 +157,10 @@ func sseSuggest(keyword string) (suggests []suggest) {
 		}
 	}
 	return
+}
+
+func init() {
+	stock.RegisterStock("sse", ssePattern, func(code string) stock.Stock {
+		return &SSE{Code: code}
+	})
 }
