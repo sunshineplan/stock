@@ -27,6 +27,8 @@ type SSE struct {
 }
 
 func (s *SSE) getRealtime() {
+	s.Realtime.Index = "SSE"
+	s.Realtime.Code = s.Code
 	resp := gohttp.GetWithClient(
 		"http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code,
 		nil,
@@ -53,8 +55,6 @@ func (s *SSE) getRealtime() {
 		log.Println("Unmarshal json Error:", err)
 		return
 	}
-	s.Realtime.Index = "SSE"
-	s.Realtime.Code = s.Code
 	s.Realtime.Name = r.Snap[0].(string)
 	s.Realtime.Now = r.Snap[5].(float64)
 	s.Realtime.Change = r.Snap[6].(float64)

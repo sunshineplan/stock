@@ -29,7 +29,7 @@ var (
 // RegisterStock registers an stock format for use by Decode.
 func RegisterStock(index, pattern string, init func(string) Stock) {
 	formatsMu.Lock()
-	formats := atomicFormats.Load().([]format)
+	formats, _ := atomicFormats.Load().([]format)
 	atomicFormats.Store(append(formats, format{index, pattern, init}))
 	formatsMu.Unlock()
 }

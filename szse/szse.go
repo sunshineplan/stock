@@ -25,6 +25,8 @@ type SZSE struct {
 }
 
 func (s *SZSE) getRealtime() {
+	s.Realtime.Index = "SZSE"
+	s.Realtime.Code = s.Code
 	var result struct {
 		Code string
 		Data struct {
@@ -58,8 +60,6 @@ func (s *SZSE) getRealtime() {
 		log.Println("Data code not equal zero.")
 		return
 	}
-	s.Realtime.Index = "SZSE"
-	s.Realtime.Code = s.Code
 	s.Realtime.Name = result.Data.Name
 	s.Realtime.Now, _ = strconv.ParseFloat(result.Data.Now, 64)
 	s.Realtime.Change, _ = strconv.ParseFloat(result.Data.Delta, 64)

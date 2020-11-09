@@ -1,0 +1,10 @@
+[Unit]
+Description=Instance to serve Stock
+After=network.target
+
+[Service]
+Environment=GIN_MODE=release
+ExecStart=/var/www/stock/webapp/stock
+
+[Install]
+WantedBy=multi-user.target
