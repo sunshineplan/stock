@@ -1,6 +1,7 @@
 package txzq
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -124,40 +125,42 @@ func (t *TXZQ) GetChart() stock.Chart {
 
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
-	var result struct{ Data [][]string }
-	if err := gohttp.GetWithClient(
-		"http://smartbox.gtimg.cn/s4/?t=gp&q="+keyword,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).JSON(&result); err != nil {
-		log.Println("Failed to get txqz suggest:", err)
-		return
-	}
-	sse := regexp.MustCompile(ssePattern)
-	szse := regexp.MustCompile(szsePattern)
-	for _, i := range result.Data {
-		switch i[0] {
-		case "sh":
-			if sse.MatchString(i[1]) {
-				suggests = append(suggests, stock.Suggest{
-					Index: "SSE",
-					Code:  i[1],
-					Name:  i[2],
-					Type:  i[4],
-				})
-			}
-		case "sz":
-			if szse.MatchString(i[1]) {
-				suggests = append(suggests, stock.Suggest{
-					Index: "SZSE",
-					Code:  i[1],
-					Name:  i[2],
-					Type:  i[4],
-				})
+	for _, t := range []string{"gp", "jj"} {
+		result := gohttp.GetWithClient(
+			fmt.Sprintf("http://smartbox.gtimg.cn/s3/?t=%s&q=%s", t, keyword),
+			nil,
+			&http.Client{
+				Transport: &http.Transport{Proxy: nil},
+				Timeout:   Timeout,
+			}).String()
+		sse := regexp.MustCompile(ssePattern)
+		szse := regexp.MustCompile(szsePattern)
+		for _, i := range split(result) {
+			name, _ := strconv.Unquote(fmt.Sprintf(`"%s"`, i[2]))
+			switch i[0] {
+			case "sh":
+				if sse.MatchString(i[1]) {
+					suggests = append(suggests,
+						stock.Suggest{Index: "SSE", Code: i[1], Name: name, Type: i[4]})
+				}
+			case "sz":
+				if szse.MatchString(i[1]) {
+					suggests = append(suggests,
+						stock.Suggest{Index: "SZSE", Code: i[1], Name: name, Type: i[4]})
+				}
 			}
 		}
+	}
+	return
+}
+
+func split(suggest string) (suggests [][]string) {
+	s := strings.Split(suggest, `"`)
+	if s[1] == "N" {
+		return
+	}
+	for _, i := range strings.Split(s[1], "^") {
+		suggests = append(suggests, strings.Split(i, "~"))
 	}
 	return
 }

@@ -6,7 +6,14 @@ import (
 
 func TestSSE(t *testing.T) {
 	s := SSE{Code: "600309"}
-	if s.getRealtime().Realtime.Name != "万华化学" {
-		t.Error("Get sse stock error")
+	if n := s.getRealtime().Realtime.Name; n != "万华化学" {
+		t.Errorf("expected %q; got %q", "万华化学", n)
+	}
+}
+
+func TestSuggests(t *testing.T) {
+	s := Suggests("whhx")
+	if n := s[0].Name; n != "万华化学" {
+		t.Errorf("expected %q; got %q", "万华化学", n)
 	}
 }
