@@ -19,6 +19,11 @@ const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
+// SetTimeout sets http client timeout when fetching stocks.
+func SetTimeout(duration int) {
+	Timeout = time.Duration(duration) * time.Second
+}
+
 // TXZQ represents 腾讯证券.
 type TXZQ struct {
 	Index    string
@@ -117,8 +122,8 @@ func (t *TXZQ) GetChart() stock.Chart {
 	return t.get().Chart
 }
 
-// Suggest returns sse and szse stock suggests according the keyword.
-func Suggest(keyword string) (suggests []stock.Suggest) {
+// Suggests returns sse and szse stock suggests according the keyword.
+func Suggests(keyword string) (suggests []stock.Suggest) {
 	var result struct{ Data [][]string }
 	if err := gohttp.GetWithClient(
 		"http://smartbox.gtimg.cn/s4/?t=gp&q="+keyword,
@@ -158,10 +163,24 @@ func Suggest(keyword string) (suggests []stock.Suggest) {
 }
 
 func init() {
-	stock.RegisterStock("sse", ssePattern, func(code string) stock.Stock {
-		return &TXZQ{Index: "SSE", Code: code}
-	})
-	stock.RegisterStock("szse", ssePattern, func(code string) stock.Stock {
-		return &TXZQ{Index: "SZSE", Code: code}
-	})
+	stock.RegisterStock(
+		"sse",
+		ssePattern,
+		func(code string) stock.Stock {
+			return &TXZQ{Index: "SSE", Code: code}
+		},
+		Suggests,
+		SetTimeout,
+	)
+	stock.RegisterStock(
+		"szse",
+		szsePattern,
+		func(code string) stock.Stock {
+			return &TXZQ{Index: "SZSE", Code: code}
+		},
+		func(_ string) []stock.Suggest {
+			return nil
+		},
+		SetTimeout,
+	)
 }

@@ -7,8 +7,6 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/sunshineplan/stock"
-	"github.com/sunshineplan/stock/sse"
-	"github.com/sunshineplan/stock/szse"
 )
 
 func showStock(c *gin.Context) {
@@ -16,7 +14,7 @@ func showStock(c *gin.Context) {
 	username := session.Get("username")
 	index := c.Param("index")
 	code := c.Param("code")
-	if stock.InitStock(index, code) != nil {
+	if stock.Init(index, code) != nil {
 		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code, "refresh": refresh})
 		return
 	}
@@ -61,7 +59,7 @@ func myStocks(c *gin.Context) {
 			c.String(500, "")
 			return
 		}
-		stocks = append(stocks, stock.InitStock(index, code))
+		stocks = append(stocks, stock.Init(index, code))
 	}
 	c.JSON(200, stock.Realtimes(stocks))
 }
@@ -69,10 +67,10 @@ func myStocks(c *gin.Context) {
 func indices(c *gin.Context) {
 	indices := stock.Realtimes(
 		[]stock.Stock{
-			stock.InitStock("SSE", "000001"),
-			stock.InitStock("SZSE", "399001"),
-			stock.InitStock("SZSE", "399006"),
-			stock.InitStock("SZSE", "399005"),
+			stock.Init("SSE", "000001"),
+			stock.Init("SZSE", "399001"),
+			stock.Init("SZSE", "399006"),
+			stock.Init("SZSE", "399005"),
 		})
 	c.JSON(200, gin.H{"沪": indices[0], "深": indices[1], "创": indices[2], "中": indices[3]})
 }
@@ -82,7 +80,7 @@ func getStock(c *gin.Context) {
 	code := c.Query("code")
 	q := c.Query("q")
 
-	s := stock.InitStock(index, code)
+	s := stock.Init(index, code)
 
 	if q == "realtime" {
 		realtime := s.GetRealtime()
@@ -97,10 +95,7 @@ func getStock(c *gin.Context) {
 }
 
 func getSuggest(c *gin.Context) {
-	keyword := c.Query("keyword")
-	s1 := sse.Suggest(keyword)
-	s2 := szse.Suggest(keyword)
-	c.JSON(200, append(s1, s2...))
+	c.JSON(200, stock.Suggests(c.Query("keyword")))
 }
 
 func star(c *gin.Context) {

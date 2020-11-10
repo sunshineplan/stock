@@ -15,9 +15,11 @@ type Stock interface {
 
 // A format holds an stock format's index, pattern and how to decode it.
 type format struct {
-	index   string
-	pattern string
-	init    func(string) Stock
+	index      string
+	pattern    string
+	init       func(string) Stock
+	suggests   func(string) []Suggest
+	setTimeout func(int)
 }
 
 // Formats is the list of registered formats.
@@ -27,15 +29,15 @@ var (
 )
 
 // RegisterStock registers an stock format for use by Decode.
-func RegisterStock(index, pattern string, init func(string) Stock) {
+func RegisterStock(index, pattern string, init func(string) Stock, suggests func(string) []Suggest, setTimeout func(int)) {
 	formatsMu.Lock()
 	formats, _ := atomicFormats.Load().([]format)
-	atomicFormats.Store(append(formats, format{index, pattern, init}))
+	atomicFormats.Store(append(formats, format{index, pattern, init, suggests, setTimeout}))
 	formatsMu.Unlock()
 }
 
-// InitStock initializes a stock.
-func InitStock(index, code string) Stock {
+// Init initializes a stock.
+func Init(index, code string) Stock {
 	formats, _ := atomicFormats.Load().([]format)
 	for _, f := range formats {
 		if strings.ToLower(index) == f.index {
@@ -71,6 +73,23 @@ type SellBuy struct {
 	Volume int
 }
 
+// Realtimes returns stocks's realtime.
+func Realtimes(s []Stock) []Realtime {
+	r := make([]Realtime, len(s))
+	var wg sync.WaitGroup
+	for i, v := range s {
+		wg.Add(1)
+		go func(i int, s Stock) {
+			defer wg.Done()
+			if s != nil {
+				r[i] = s.GetRealtime()
+			}
+		}(i, v)
+	}
+	wg.Wait()
+	return r
+}
+
 // Chart is a stock's chart data.
 type Chart struct {
 	Last float64 `json:"last"`
@@ -91,17 +110,19 @@ type Suggest struct {
 	Type  string
 }
 
-// Realtimes returns stocks's realtime.
-func Realtimes(s []Stock) []Realtime {
-	r := make([]Realtime, len(s))
-	var wg sync.WaitGroup
-	for i, v := range s {
-		wg.Add(1)
-		go func(i int, s Stock) {
-			defer wg.Done()
-			r[i] = s.GetRealtime()
-		}(i, v)
+// Suggests suggests stocks according keyword.
+func Suggests(keyword string) (suggests []Suggest) {
+	formats, _ := atomicFormats.Load().([]format)
+	for _, f := range formats {
+		suggests = append(suggests, f.suggests(keyword)...)
 	}
-	wg.Wait()
-	return r
+	return
+}
+
+// SetTimeout sets http client timeout when fetching stocks.
+func SetTimeout(duration int) {
+	formats, _ := atomicFormats.Load().([]format)
+	for _, f := range formats {
+		f.setTimeout(duration)
+	}
 }

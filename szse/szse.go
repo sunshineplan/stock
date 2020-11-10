@@ -17,6 +17,11 @@ const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
+// SetTimeout sets http client timeout when fetching stocks.
+func SetTimeout(duration int) {
+	Timeout = time.Duration(duration) * time.Second
+}
+
 // SZSE represents Shenzhen Stock Exchange.
 type SZSE struct {
 	Code     string
@@ -99,8 +104,8 @@ func (s *SZSE) GetChart() stock.Chart {
 	return s.get().Chart
 }
 
-// Suggest returns szse stock suggests according the keyword.
-func Suggest(keyword string) (suggests []stock.Suggest) {
+// Suggests returns szse stock suggests according the keyword.
+func Suggests(keyword string) (suggests []stock.Suggest) {
 	var result []struct{ WordB, Value, Type string }
 	if err := gohttp.PostWithClient(
 		"http://www.szse.cn/api/search/suggest?keyword="+keyword,
@@ -128,7 +133,13 @@ func Suggest(keyword string) (suggests []stock.Suggest) {
 }
 
 func init() {
-	stock.RegisterStock("szse", szsePattern, func(code string) stock.Stock {
-		return &SZSE{Code: code}
-	})
+	stock.RegisterStock(
+		"szse",
+		szsePattern,
+		func(code string) stock.Stock {
+			return &SZSE{Code: code}
+		},
+		Suggests,
+		SetTimeout,
+	)
 }

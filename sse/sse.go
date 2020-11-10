@@ -19,6 +19,11 @@ const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
+// SetTimeout sets http client timeout when fetching stocks.
+func SetTimeout(duration int) {
+	Timeout = time.Duration(duration) * time.Second
+}
+
 // SSE represents Shanghai Stock Exchange.
 type SSE struct {
 	Code     string
@@ -70,13 +75,13 @@ func (s *SSE) getRealtime() *SSE {
 			sell5,
 			stock.SellBuy{
 				Price:  r.Snap[len(r.Snap)-1].([]interface{})[i].(float64),
-				Volume: int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64)),
+				Volume: int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64)) / 100,
 			})
 		buy5 = append(
 			buy5,
 			stock.SellBuy{
 				Price:  r.Snap[len(r.Snap)-2].([]interface{})[i].(float64),
-				Volume: int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64)),
+				Volume: int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64)) / 100,
 			})
 	}
 	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
@@ -130,8 +135,8 @@ func (s *SSE) GetChart() stock.Chart {
 	return s.getChart().Chart
 }
 
-// Suggest returns sse stock suggests according the keyword.
-func Suggest(keyword string) (suggests []stock.Suggest) {
+// Suggests returns sse stock suggests according the keyword.
+func Suggests(keyword string) (suggests []stock.Suggest) {
 	var result struct {
 		Data []struct{ Category, Code, Word string }
 	}
@@ -160,7 +165,13 @@ func Suggest(keyword string) (suggests []stock.Suggest) {
 }
 
 func init() {
-	stock.RegisterStock("sse", ssePattern, func(code string) stock.Stock {
-		return &SSE{Code: code}
-	})
+	stock.RegisterStock(
+		"sse",
+		ssePattern,
+		func(code string) stock.Stock {
+			return &SSE{Code: code}
+		},
+		Suggests,
+		SetTimeout,
+	)
 }
