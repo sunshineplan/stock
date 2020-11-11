@@ -91,11 +91,10 @@ func (t *TXZQ) get() *TXZQ {
 		volume, _ := strconv.Atoi(realtime[i+1].(string))
 		sell5 = append(sell5, stock.SellBuy{Price: price, Volume: volume})
 	}
-	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		t.Realtime.Sell5 = sell5
-	}
-	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
+		!reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		t.Realtime.Buy5 = buy5
+		t.Realtime.Sell5 = sell5
 	}
 
 	chart, ok := data.(map[string]interface{})["data"].(map[string]interface{})["data"].([]interface{})

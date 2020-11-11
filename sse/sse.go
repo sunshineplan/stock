@@ -84,10 +84,9 @@ func (s *SSE) getRealtime() *SSE {
 				Volume: int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64)) / 100,
 			})
 	}
-	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
+		!reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Sell5 = sell5
-	}
-	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Buy5 = buy5
 	}
 	return s
