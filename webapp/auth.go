@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"strings"
 
@@ -25,71 +26,85 @@ func authRequired(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
+	var login struct{ Username, Password string }
+	if err := c.BindJSON(&login); err != nil {
+		c.String(400, "")
+		return
+	}
+	login.Username = strings.ToLower(login.Username)
+
 	db, err := getDB()
 	if err != nil {
 		log.Println("Failed to connect to database:", err)
-		c.HTML(200, "login.html", gin.H{"error": "Failed to connect to database."})
+		c.String(500, "Failed to connect to database.")
 		return
 	}
 	defer db.Close()
 
-	session := sessions.Default(c)
-	username := strings.TrimSpace(strings.ToLower(c.PostForm("username")))
-	password := c.PostForm("password")
-
 	var user user
+	statusCode := 200
 	var message string
 	if err := db.QueryRow(
-		"SELECT id, username, password FROM user WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password); err != nil {
+		"SELECT id, username, password FROM user WHERE username = ?",
+		login.Username,
+	).Scan(&user.ID, &user.Username, &user.Password); err != nil {
 		if strings.Contains(err.Error(), "doesn't exist") {
 			restore("")
-			c.HTML(200, "login.html", gin.H{"error": "Detected first time running. Initialized the database."})
-			return
-		}
-		if strings.Contains(err.Error(), "no rows") {
+			statusCode = 503
+			message = "Detected first time running. Initialized the database."
+		} else if err == sql.ErrNoRows {
+			statusCode = 403
 			message = "Incorrect username"
 		} else {
-			log.Println(err)
+			log.Print(err)
+			statusCode = 500
 			message = "Critical Error! Please contact your system administrator."
 		}
 	} else {
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-			if (strings.Contains(err.Error(), "too short") && user.Password != password) || strings.Contains(err.Error(), "is not") {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
+			if (err == bcrypt.ErrHashTooShort && user.Password != login.Password) ||
+				err == bcrypt.ErrMismatchedHashAndPassword {
+				statusCode = 403
 				message = "Incorrect password"
-			} else if user.Password != password {
-				log.Println(err)
+			} else if user.Password != login.Password {
+				log.Print(err)
+				statusCode = 500
 				message = "Critical Error! Please contact your system administrator."
 			}
-		}
-		if message == "" {
+		} else if message == "" {
+			session := sessions.Default(c)
 			session.Clear()
 			session.Set("user_id", user.ID)
 			session.Set("username", user.Username)
 
 			rememberme := c.PostForm("rememberme")
-			if rememberme == "on" {
+			if rememberme == "true" {
 				session.Options(sessions.Options{Path: "/", HttpOnly: true, MaxAge: 856400 * 365})
 			} else {
 				session.Options(sessions.Options{Path: "/", HttpOnly: true, MaxAge: 0})
 			}
 
 			if err := session.Save(); err != nil {
-				log.Println(err)
-				c.HTML(200, "login.html", gin.H{"error": "Failed to save session."})
-				return
+				log.Print(err)
+				statusCode = 500
+				message = "Failed to save session."
 			}
-			c.Redirect(302, "/")
-			return
 		}
 	}
-	c.HTML(200, "login.html", gin.H{"error": message})
+	c.String(statusCode, message)
 }
 
 func setting(c *gin.Context) {
+	var setting struct{ Password, Password1, Password2 string }
+	if err := c.BindJSON(&setting); err != nil {
+		c.String(400, "")
+		return
+	}
+
 	db, err := getDB()
 	if err != nil {
 		log.Println("Failed to connect to database:", err)
-		c.HTML(200, "setting.html", gin.H{"error": "Failed to connect to database."})
+		c.String(503, "")
 		return
 	}
 	defer db.Close()
@@ -97,55 +112,57 @@ func setting(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
-	password := c.PostForm("password")
-	password1 := c.PostForm("password1")
-	password2 := c.PostForm("password2")
-
 	var oldPassword string
 	if err := db.QueryRow("SELECT password FROM user WHERE id = ?", userID).Scan(&oldPassword); err != nil {
-		log.Println(err)
-		c.HTML(200, "setting.html", gin.H{"error": "Failed to get current user password."})
+		log.Print(err)
+		c.String(500, "")
 		return
 	}
 
 	var message string
-	err = bcrypt.CompareHashAndPassword([]byte(oldPassword), []byte(password))
+	var errorCode int
+	err = bcrypt.CompareHashAndPassword([]byte(oldPassword), []byte(setting.Password))
 	switch {
 	case err != nil:
-		if (strings.Contains(err.Error(), "too short") && password != oldPassword) || strings.Contains(err.Error(), "is not") {
+		if (err == bcrypt.ErrHashTooShort && setting.Password != oldPassword) ||
+			err == bcrypt.ErrMismatchedHashAndPassword {
 			message = "Incorrect password."
-		} else if password != oldPassword {
-			log.Println(err)
-			message = "Failed to compare password."
+			errorCode = 1
+		} else if setting.Password != oldPassword {
+			log.Print(err)
+			c.String(500, "")
+			return
 		}
-	case password1 != password2:
+	case setting.Password1 != setting.Password2:
 		message = "Confirm password doesn't match new password."
-	case password1 == password:
+		errorCode = 2
+	case setting.Password1 == setting.Password:
 		message = "New password cannot be the same as your current password."
-	case password1 == "":
+		errorCode = 2
+	case setting.Password1 == "":
 		message = "New password cannot be blank."
 	}
 
 	if message == "" {
-		newPassword, err := bcrypt.GenerateFromPassword([]byte(password1), bcrypt.MinCost)
+		newPassword, err := bcrypt.GenerateFromPassword([]byte(setting.Password1), bcrypt.MinCost)
 		if err != nil {
-			log.Println(err)
-			c.HTML(200, "setting.html", gin.H{"error": "Failed to encrypt new password."})
+			log.Print(err)
+			c.String(500, "")
 			return
 		}
 		if _, err := db.Exec("UPDATE user SET password = ? WHERE id = ?", string(newPassword), userID); err != nil {
-			log.Println(err)
-			c.HTML(200, "setting.html", gin.H{"error": "Failed to update new password."})
+			log.Print(err)
+			c.String(500, "")
 			return
 		}
 		session.Clear()
 		if err := session.Save(); err != nil {
-			log.Println(err)
-			c.HTML(200, "setting.html", gin.H{"error": "Failed to save session."})
+			log.Print(err)
+			c.String(500, "")
 			return
 		}
-		c.Redirect(302, "/")
+		c.JSON(200, gin.H{"status": 1})
 		return
 	}
-	c.HTML(200, "setting.html", gin.H{"error": message})
+	c.JSON(200, gin.H{"status": 0, "message": message, "error": errorCode})
 }

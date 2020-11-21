@@ -7,7 +7,7 @@ Chart.defaults.global.tooltips.intersect = false
 Chart.defaults.global.tooltips.displayColors = false
 Chart.defaults.global.animation.duration = 0
 
-chart = new Chart(document.getElementById('chart'), {
+intraday = {
   type: 'line',
   data: {
     labels: timeLabels(9 * 60 + 30, 11 * 60 + 30).concat(timeLabels(13 * 60 + 1, 15 * 60)),
@@ -52,41 +52,6 @@ chart = new Chart(document.getElementById('chart'), {
       ]
     }
   }
-})
+}
 
-Vue.createApp({
-  data() {
-    return {
-      index: realtime.index,
-      code: realtime.code,
-    }
-  },
-  created() { this.start() },
-  methods: {
-    start: function () {
-      if (this.code != 'n/a') {
-        this.load(this.index, this.code);
-        setInterval(() => this.load(this.index, this.code, ct = true), 60000);
-      }
-    },
-    load: function (index, code, ct = false) {
-      if (checkTime() || !ct) {
-        fetch('/get?' + new URLSearchParams({ index: index, code: code, q: 'chart' }))
-          .then(response => response.json()).then(json => {
-            if (json !== null) {
-              if (json.chart != null)
-                chart.data.datasets.forEach(dataset => {
-                  dataset.data = json.chart;
-                });
-              if (json.last != 0) {
-                chart.options.scales.yAxes[0].ticks.suggestedMin = json.last / 1.01;
-                chart.options.scales.yAxes[0].ticks.suggestedMax = json.last * 1.01;
-                chart.annotation.options.annotations[0].value = json.last;
-              }
-              chart.update();
-            };
-          });
-      };
-    }
-  }
-}).mount('#chart')
+const chart = { template: "<canvas class='chart' id='stockChart'></canvas>" }

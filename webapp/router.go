@@ -9,18 +9,6 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-func showStock(c *gin.Context) {
-	session := sessions.Default(c)
-	username := session.Get("username")
-	index := c.Param("index")
-	code := c.Param("code")
-	if stock.Init(index, code) != nil {
-		c.HTML(200, "chart.html", gin.H{"user": username, "index": index, "code": code, "refresh": refresh})
-		return
-	}
-	c.HTML(200, "chart.html", gin.H{"user": username, "index": "n/a", "code": "n/a", "refresh": refresh})
-}
-
 func myStocks(c *gin.Context) {
 	db, err := getDB()
 	if err != nil {
@@ -76,17 +64,19 @@ func indices(c *gin.Context) {
 }
 
 func getStock(c *gin.Context) {
-	index := c.Query("index")
-	code := c.Query("code")
-	q := c.Query("q")
+	var r struct{ Index, Code, Q string }
+	if err := c.BindJSON(&r); err != nil {
+		c.String(400, "")
+		return
+	}
 
-	s := stock.Init(index, code)
+	s := stock.Init(r.Index, r.Code)
 
-	if q == "realtime" {
+	if r.Q == "realtime" {
 		realtime := s.GetRealtime()
 		c.JSON(200, realtime)
 		return
-	} else if q == "chart" {
+	} else if r.Q == "chart" {
 		chart := s.GetChart()
 		c.JSON(200, chart)
 		return
@@ -95,7 +85,12 @@ func getStock(c *gin.Context) {
 }
 
 func getSuggest(c *gin.Context) {
-	c.JSON(200, stock.Suggests(c.Query("keyword")))
+	var r struct{ Keyword string }
+	if err := c.BindJSON(&r); err != nil {
+		c.String(400, "")
+		return
+	}
+	c.JSON(200, stock.Suggests(r.Keyword))
 }
 
 func star(c *gin.Context) {
@@ -115,8 +110,8 @@ func star(c *gin.Context) {
 
 	if userID != nil {
 		var exist string
-		if err := db.QueryRow(
-			"SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID).Scan(&exist); err == nil {
+		if err := db.QueryRow("SELECT idx FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+			index, code, userID).Scan(&exist); err == nil {
 			c.String(200, "1")
 			return
 		}
@@ -138,17 +133,24 @@ func doStar(c *gin.Context) {
 	refer := strings.Split(c.Request.Referer(), "/")
 	index := refer[len(refer)-2]
 	code := refer[len(refer)-1]
-	action := c.PostForm("action")
+
+	var r struct{ Action string }
+	if err := c.BindJSON(&r); err != nil {
+		c.String(400, "")
+		return
+	}
 
 	if userID != nil {
-		if action == "unstar" {
-			if _, err := db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?", index, code, userID); err != nil {
+		if r.Action == "unstar" {
+			if _, err := db.Exec("DELETE FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+				index, code, userID); err != nil {
 				log.Println("Failed to unstar stock:", err)
 				c.String(500, "")
 				return
 			}
 		} else {
-			if _, err := db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)", index, code, userID); err != nil {
+			if _, err := db.Exec("INSERT INTO stock (idx, code, user_id) VALUES (?, ?, ?)",
+				index, code, userID); err != nil {
 				log.Println("Failed to star stock:", err)
 				c.String(500, "")
 				return
@@ -172,13 +174,20 @@ func reorder(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
-	orig := strings.Split(c.PostForm("orig"), " ")
-	dest := c.PostForm("dest")
+	var r struct{ Orig, Dest string }
+	if err := c.BindJSON(&r); err != nil {
+		c.String(400, "")
+		return
+	}
+
+	orig := strings.Split(r.Orig, " ")
+	dest := r.Dest
 
 	var origSeq, destSeq int
 
 	if err := db.QueryRow(
-		"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", orig[0], orig[1], userID).Scan(&origSeq); err != nil {
+		"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+		orig[0], orig[1], userID).Scan(&origSeq); err != nil {
 		log.Println("Failed to scan orig seq:", err)
 		c.String(500, "")
 		return
@@ -186,7 +195,8 @@ func reorder(c *gin.Context) {
 	if dest != "#TOP_POSITION#" {
 		d := strings.Split(dest, " ")
 		if err := db.QueryRow(
-			"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?", d[0], d[1], userID).Scan(&destSeq); err != nil {
+			"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+			d[0], d[1], userID).Scan(&destSeq); err != nil {
 			log.Println("Failed to scan dest seq:", err)
 			c.String(500, "")
 			return
