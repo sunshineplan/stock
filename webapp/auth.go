@@ -26,7 +26,10 @@ func authRequired(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	var login struct{ Username, Password string }
+	var login struct {
+		Username, Password string
+		Rememberme         bool
+	}
 	if err := c.BindJSON(&login); err != nil {
 		c.String(400, "")
 		return
@@ -77,8 +80,7 @@ func login(c *gin.Context) {
 			session.Set("user_id", user.ID)
 			session.Set("username", user.Username)
 
-			rememberme := c.PostForm("rememberme")
-			if rememberme == "true" {
+			if login.Rememberme {
 				session.Options(sessions.Options{Path: "/", HttpOnly: true, MaxAge: 856400 * 365})
 			} else {
 				session.Options(sessions.Options{Path: "/", HttpOnly: true, MaxAge: 0})
