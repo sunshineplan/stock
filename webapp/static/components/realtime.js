@@ -3,7 +3,7 @@ const realtime = {
   data() { return { stared: false } },
   computed: {
     width() {
-      if (this.stock.sell5 === null && this.stock.buy5 === null) return '480px'
+      if (!this.stock.sell5  && !this.stock.buy5 ) return '480px'
       else return '360px'
     },
     stock() { return this.Stock.value }
@@ -32,7 +32,7 @@ const realtime = {
         </tr>
       </tbody>
     </table>
-    <table v-if='stock.sell5 !== null || stock.buy5 !== null'>
+    <table v-if='stock.sell5 || stock.buy5'>
       <tbody>
         <tr>
           <td>

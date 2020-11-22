@@ -4,7 +4,7 @@ const routes = [
   { path: '/', component: stocks },
   { path: '/login', component: login },
   { path: '/setting', component: setting },
-  { path: '/stock/:index/:code', component: stock }
+  { name: 'stock', path: '/stock/:index/:code', component: stock }
 ]
 
 const router = VueRouter.createRouter({
@@ -16,7 +16,7 @@ App.use(router)
 App.mixin({
   methods: {
     addColor: (stock, val) => {
-      if (stock !== null && stock.name != 'n/a') {
+      if (stock && stock.name != 'n/a') {
         switch (val) {
           case 'change':
           case 'percent':
