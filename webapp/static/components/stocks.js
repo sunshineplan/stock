@@ -57,7 +57,7 @@ const stocks = {
   methods: {
     start: function () {
       this.load(true)
-      this.autoUpdate = setInterval(() => this.load(true), this.refresh * 1000)
+      this.autoUpdate = setInterval(() => this.load(), this.refresh * 1000)
     },
     stop: function () {
       this.fetching.abort()

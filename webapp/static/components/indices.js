@@ -18,7 +18,7 @@ const indices = {
   methods: {
     start: function () {
       this.load(true)
-      setInterval(() => this.load(true), 30000)
+      setInterval(() => this.load(), 10000)
     },
     load: function (force) {
       if (checkTime() || force) {

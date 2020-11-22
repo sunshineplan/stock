@@ -46,8 +46,8 @@ const stock = {
     start: function () {
       if (this.code != 'n/a') {
         this.loadChart(true).then(() => this.loadRealtime(true))
-        this.autoUpdate.push(setInterval(() => this.loadRealtime(true), this.refresh * 1000))
-        this.autoUpdate.push(setInterval(() => this.loadChart(true), 60000))
+        this.autoUpdate.push(setInterval(() => this.loadRealtime(), this.refresh * 1000))
+        this.autoUpdate.push(setInterval(() => this.loadChart(), 60000))
       }
     },
     loadRealtime: function (force) {
