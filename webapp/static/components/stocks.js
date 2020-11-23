@@ -44,15 +44,18 @@ const stocks = {
   created() { this.start() },
   mounted() {
     document.title = 'My Stocks'
-    this.sortable = $('#sortable').sortable({
-      start: () => this.stop(),
-      stop: () => window.location = '/',
-      update: (event, ui) => this.reorder(ui)
+    this.sortable = new Sortable(sortable, {
+      animation: 150,
+      delay: 500,
+      swapThreshold: 0.5,
+      onStart: () => this.stop(),
+      onEnd: () => this.start(),
+      onUpdate: this.onUpdate
     })
   },
   beforeUnmount() {
     this.stop()
-    $('#sortable').sortable('destroy')
+    this.sortable.destroy()
   },
   methods: {
     start: function () {
@@ -71,13 +74,13 @@ const stocks = {
           .then(json => { this.stocks = json })
       }
     },
-    reorder: ui => {
-      var orig, dest
-      orig = ui.item.find('td')[0].textContent + ' ' + ui.item.find('td')[1].textContent
-      if (ui.item.prev().length != 0)
-        dest = ui.item.prev().find('td')[0].textContent + ' ' + ui.item.prev().find('td')[1].textContent
-      else dest = '#TOP_POSITION#'
-      post('/reorder', { orig, dest })
+    onUpdate: function (evt) {
+      console.log(`${this.stocks[evt.oldIndex].index} ${this.stocks[evt.oldIndex].code}`)
+      console.log(`${this.stocks[evt.newIndex].index} ${this.stocks[evt.newIndex].code}`)
+      //post('/reorder', {
+      //old: `${this.stocks[evt.oldIndex].index} ${this.stocks[evt.oldIndex].code}`,
+      // new: `${this.stocks[evt.newIndex].index} ${this.stocks[evt.newIndex].code}`
+      //})
     }
   }
 }

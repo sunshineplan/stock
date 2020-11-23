@@ -181,43 +181,44 @@ func reorder(c *gin.Context) {
 	}
 
 	orig := strings.Split(r.Orig, " ")
-	dest := r.Dest
+	dest := strings.Split(r.Dest, " ")
 
+	ec := make(chan error, 1)
 	var origSeq, destSeq int
-
-	if err := db.QueryRow(
-		"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
-		orig[0], orig[1], userID).Scan(&origSeq); err != nil {
+	go func() {
+		ec <- db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+			orig[0], orig[1], userID).Scan(&origSeq)
+	}()
+	if err := db.QueryRow("SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
+		dest[0], dest[1], userID).Scan(&destSeq); err != nil {
+		log.Println("Failed to scan dest seq:", err)
+		c.String(500, "")
+		return
+	}
+	if err := <-ec; err != nil {
 		log.Println("Failed to scan orig seq:", err)
 		c.String(500, "")
 		return
 	}
-	if dest != "#TOP_POSITION#" {
-		d := strings.Split(dest, " ")
-		if err := db.QueryRow(
-			"SELECT seq FROM stock WHERE idx = ? AND code = ? AND user_id = ?",
-			d[0], d[1], userID).Scan(&destSeq); err != nil {
-			log.Println("Failed to scan dest seq:", err)
-			c.String(500, "")
-			return
-		}
-	} else {
-		destSeq = 0
-	}
 
+	go func() {
+		_, err := db.Exec("UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?",
+			destSeq, orig[0], orig[1], userID)
+		ec <- err
+	}()
 	if origSeq > destSeq {
-		destSeq++
-		_, err = db.Exec("UPDATE stock SET seq = seq + 1 WHERE seq >= ? AND user_id = ? AND seq < ?", destSeq, userID, origSeq)
+		_, err = db.Exec("UPDATE stock SET seq = seq + 1 WHERE seq >= ? AND seq < ? AND user_id = ?",
+			destSeq, origSeq, userID)
 	} else {
-		_, err = db.Exec("UPDATE stock SET seq = seq - 1 WHERE seq <= ? AND user_id = ? AND seq > ?", destSeq, userID, origSeq)
+		_, err = db.Exec("UPDATE stock SET seq = seq - 1 WHERE seq > ? AND seq <= ? AND user_id = ?",
+			origSeq, destSeq, userID)
 	}
 	if err != nil {
 		log.Println("Failed to update other seq:", err)
 		c.String(500, "")
 		return
 	}
-	if _, err := db.Exec(
-		"UPDATE stock SET seq = ? WHERE idx = ? AND code = ? AND user_id = ?", destSeq, orig[0], orig[1], userID); err != nil {
+	if err := <-ec; err != nil {
 		log.Println("Failed to update orig seq:", err)
 		c.String(500, "")
 		return

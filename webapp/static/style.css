@@ -212,6 +212,10 @@ small {
     display: none;
 }
 
+.sortable-ghost {
+    opacity: 0;
+}
+
 @media (max-width: 1360px) {
     .search {
         margin-right: 0;
