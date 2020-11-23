@@ -34,7 +34,7 @@ const stocks = {
         </tr>
       </thead>
       <tbody id='sortable'>
-        <tr v-for='stock in stocks' @click='gotoStock(stock)'>
+        <tr v-for='stock in stocks' :key='stock.name' @click='gotoStock(stock)'>
           <td v-for='val in columns' :style='addColor(stock, val)'>{{ stock[val] }}</td>
         </tr>
       </tbody>
@@ -75,12 +75,10 @@ const stocks = {
       }
     },
     onUpdate: function (evt) {
-      console.log(`${this.stocks[evt.oldIndex].index} ${this.stocks[evt.oldIndex].code}`)
-      console.log(`${this.stocks[evt.newIndex].index} ${this.stocks[evt.newIndex].code}`)
-      //post('/reorder', {
-      //old: `${this.stocks[evt.oldIndex].index} ${this.stocks[evt.oldIndex].code}`,
-      // new: `${this.stocks[evt.newIndex].index} ${this.stocks[evt.newIndex].code}`
-      //})
+      post('/reorder', {
+        old: `${this.stocks[evt.oldIndex].index} ${this.stocks[evt.oldIndex].code}`,
+        new: `${this.stocks[evt.newIndex].index} ${this.stocks[evt.newIndex].code}`
+      })
     }
   }
 }

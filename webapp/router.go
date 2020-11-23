@@ -174,14 +174,14 @@ func reorder(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
 
-	var r struct{ Orig, Dest string }
+	var r struct{ New, Old string }
 	if err := c.BindJSON(&r); err != nil {
 		c.String(400, "")
 		return
 	}
 
-	orig := strings.Split(r.Orig, " ")
-	dest := strings.Split(r.Dest, " ")
+	orig := strings.Split(r.New, " ")
+	dest := strings.Split(r.Old, " ")
 
 	ec := make(chan error, 1)
 	var origSeq, destSeq int
