@@ -14,7 +14,7 @@ const login = {
   <div class='login'>
     <div class='form-group'>
       <label for='username'>Username</label>
-      <input autofocus class='form-control' v-model.trim='username' id='username' maxlength=20 placeholder='Username' required>
+      <input class='form-control' v-model.trim='username' id='username' maxlength=20 placeholder='Username' required>
     </div>
     <div class='form-group'>
       <label for='password'>Password</label>
@@ -31,6 +31,7 @@ const login = {
   mounted() {
     document.title = 'Log In'
     this.username = localStorage.getItem('username')
+    username.focus()
   },
   methods: {
     login() {
