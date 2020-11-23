@@ -28,7 +28,10 @@ const login = {
     <button class='btn btn-primary login' @click='login'>Log In</button>
   </div>
 </div>`,
-  mounted() { document.title = 'Log In' },
+  mounted() {
+    document.title = 'Log In'
+    this.username = localStorage.getItem('username')
+  },
   methods: {
     login() {
       if (!username.checkValidity())
@@ -42,7 +45,10 @@ const login = {
       }).then(resp => {
         if (!resp.ok) resp.text().then(err =>
           BootstrapButtons.fire('Error', err, 'error'))
-        else window.location = '/'
+        else {
+          localStorage.setItem('username', this.username)
+          window.location = '/'
+        }
       })
     }
   }

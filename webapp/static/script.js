@@ -43,8 +43,3 @@ timeLabels = (start, end) => {
   }
   return times
 }
-
-$(document).on('click', '#login', () => {
-  if ($('#username').val() != 'admin')
-    localStorage.setItem('username', $('#username').val())
-})
