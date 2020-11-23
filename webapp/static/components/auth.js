@@ -30,7 +30,7 @@ const login = {
 </div>`,
   mounted() { document.title = 'Log In' },
   methods: {
-    login: function () {
+    login() {
       if (!username.checkValidity())
         BootstrapButtons.fire('Error', 'Username cannot be empty.', 'error')
       else if (!password.checkValidity())
@@ -90,7 +90,7 @@ const setting = {
   },
   beforeUnmount: function () { window.removeEventListener('keyup', this.cancel) },
   methods: {
-    setting: function () {
+    setting() {
       if (valid()) {
         this.validated = false
         post('/setting', {
@@ -118,7 +118,7 @@ const setting = {
       }
       else this.validated = true
     },
-    goback: function () { this.$router.go(-1) },
-    cancel: function (event) { if (event.key == 'Escape') this.goback() }
+    goback() { this.$router.go(-1) },
+    cancel(event) { if (event.key == 'Escape') this.goback() }
   }
 }

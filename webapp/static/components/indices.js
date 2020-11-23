@@ -16,11 +16,11 @@ const indices = {
 </div>`,
   created() { this.start() },
   methods: {
-    start: function () {
+    start() {
       this.load(true)
       setInterval(() => this.load(), 10000)
     },
-    load: function (force) {
+    load(force) {
       if (checkTime() || force) {
         fetch('/indices')
           .then(response => response.json())

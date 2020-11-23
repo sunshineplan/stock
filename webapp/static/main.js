@@ -15,7 +15,7 @@ App.use(router)
 
 App.mixin({
   methods: {
-    addColor: (stock, val) => {
+    addColor(stock, val) {
       if (stock && stock.name != 'n/a') {
         switch (val) {
           case 'change':
@@ -32,7 +32,7 @@ App.mixin({
         }
       }
     },
-    gotoStock: function (stock) { this.$router.push(`/stock/${stock.index}/${stock.code}`) },
+    gotoStock(stock) { this.$router.push(`/stock/${stock.index}/${stock.code}`) },
   }
 })
 

@@ -3,7 +3,7 @@ const realtime = {
   data() { return { stared: false } },
   computed: {
     width() {
-      if (!this.stock.sell5  && !this.stock.buy5 ) return '480px'
+      if (!this.stock.sell5 && !this.stock.buy5) return '480px'
       else return '360px'
     },
     stock() { return this.Stock.value }
@@ -60,12 +60,12 @@ const realtime = {
       .then(text => { if (text == '1') this.stared = true })
   },
   methods: {
-    star: function () {
+    star() {
       if (this.stared)
         post('/star', { action: 'unstar' })
           .then(() => this.stared = false)
       else post('/star').then(() => this.stared = true)
     },
-    open: function () { window.open('http://stockpage.10jqka.com.cn/' + this.stock.code) }
+    open() { window.open('http://stockpage.10jqka.com.cn/' + this.stock.code) }
   }
 }

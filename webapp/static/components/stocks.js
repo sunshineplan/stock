@@ -58,15 +58,15 @@ const stocks = {
     this.sortable.destroy()
   },
   methods: {
-    start: function () {
+    start() {
       this.load(true)
       this.autoUpdate = setInterval(() => this.load(), this.refresh * 1000)
     },
-    stop: function () {
+    stop() {
       this.fetching.abort()
       clearInterval(this.autoUpdate)
     },
-    load: function (force) {
+    load(force) {
       if (checkTime() || force) {
         this.fetching = new AbortController()
         fetch('/mystocks', { signal: this.fetching.signal })

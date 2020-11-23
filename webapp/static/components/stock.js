@@ -43,14 +43,14 @@ const stock = {
     this.chart.destroy()
   },
   methods: {
-    start: function () {
+    start() {
       if (this.code != 'n/a') {
         this.loadChart(true).then(() => this.loadRealtime(true))
         this.autoUpdate.push(setInterval(() => this.loadRealtime(), this.refresh * 1000))
         this.autoUpdate.push(setInterval(() => this.loadChart(), 60000))
       }
     },
-    loadRealtime: function (force) {
+    loadRealtime(force) {
       if (checkTime() || force && this.code)
         return post('/get', { index: this.index, code: this.code, q: 'realtime' })
           .then(response => response.json())
@@ -66,7 +66,7 @@ const stock = {
             }
           })
     },
-    loadChart: function (force) {
+    loadChart(force) {
       if (checkTime() || force && this.code) {
         return post('/get', { index: this.index, code: this.code, q: 'chart' })
           .then(response => response.json()).then(json => {
