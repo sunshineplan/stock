@@ -88,6 +88,7 @@ body {
 }
 
 .search {
+    position: relative;
     width: 250px;
     display: flex;
     float: right;
@@ -99,6 +100,36 @@ body {
 
 .search:hover {
     box-shadow: 0 1px 6px 0 rgba(32,33,36,0.28);
+}
+
+#suggest {
+    background-color: transparent;
+    padding: 10px;
+    border: 0;
+}
+
+#suggest:focus {
+    outline: none;
+}
+
+.suggest-list {
+    position: absolute;
+    background-color: white;
+    box-shadow: rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
+    border-radius: 5px;
+    list-style-type: none;
+    padding: 0;
+    width: 250px;
+    cursor: default;
+    text-indent: 20px;
+    top: 100%;
+    z-index: 99;
+}
+
+.autoComplete_selected {
+    color: white;
+    background-color: #008eff;
+    border-radius: 5px;
 }
 
 .login {
@@ -175,37 +206,6 @@ small {
     cursor: pointer;
     display: flex;
     align-items: center;
-}
-
-.ui-autocomplete-input {
-    background-color: transparent;
-    padding: 10px;
-    border: 0;
-}
-
-.ui-autocomplete-input:focus {
-    outline: none;
-}
-
-.ui-autocomplete {
-    background-color: white;
-    box-shadow: rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
-    border-radius: 5px;
-    list-style-type: none;
-    padding: 0;
-    width: 250px;
-    cursor: default;
-    text-indent: 20px;
-}
-
-.ui-state-active {
-    color: white;
-    background-color: #008eff;
-    border-radius: 5px;
-}
-
-.ui-helper-hidden-accessible {
-    display: none;
 }
 
 .short {

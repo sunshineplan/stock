@@ -154,6 +154,11 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 }
 
 func split(suggest string) (suggests [][]string) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in", suggest)
+		}
+	}()
 	s := strings.Split(suggest, `"`)
 	if s[1] == "N" {
 		return

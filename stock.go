@@ -111,12 +111,13 @@ type Suggest struct {
 }
 
 // Suggests suggests stocks according keyword.
-func Suggests(keyword string) (suggests []Suggest) {
+func Suggests(keyword string) []Suggest {
 	formats, _ := atomicFormats.Load().([]format)
+	suggests := []Suggest{}
 	for _, f := range formats {
 		suggests = append(suggests, f.suggests(keyword)...)
 	}
-	return
+	return suggests
 }
 
 // SetTimeout sets http client timeout when fetching stocks.

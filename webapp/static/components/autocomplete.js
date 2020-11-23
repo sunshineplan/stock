@@ -1,33 +1,56 @@
 const autocomplete = {
+  data() {
+    return {
+      suggest: '',
+      autoComplete: ''
+    }
+  },
   template: `
 <div class='search'>
   <div class='icon'>
     <i class='material-icons'>search</i>
   </div>
-  <input placeholder='Search Stock' id='search'>
+  <input v-model.trim='suggest' id='suggest'>
 </div>`,
   mounted() {
-    $('#search').autocomplete({
-      source: (request, response) => {
-        post('/suggest', { keyword: request.term })
-          .then(response => response.json()).then(data => {
-            if (!data) response(['No matches found.'])
-            else response($.map(data, item => {
-              return `${item.Index}:${item.Code} ${item.Name} ${item.Type}`
-            }))
-          })
+    this.autoComplete = new autoComplete({
+      selector: '#suggest',
+      data: {
+        src: async () => {
+          if (this.suggest.length >= 2) {
+            let source = await post('/suggest', { keyword: this.suggest })
+            let data = await source.json()
+            return data.map(i => `${i.Index}:${i.Code} ${i.Name} ${i.Type}`)
+          }
+          return []
+        },
+        cache: false
       },
-      select: (event, ui) => {
-        if (ui.item.value == 'No matches found.') event.preventDefault()
-        else {
-          var stock = ui.item.value.split(' ')[0].split(':')
-          this.$router.push(`/stock/${stock[0]}/${stock[1]}`)
-          setTimeout(() => $('#search').val(''), 50)
+      searchEngine: (query, record) => { return record },
+      placeHolder: 'Search Stock',
+      threshold: 1,
+      debounce: 300,
+      maxResults: 5,
+      resultsList: {
+        render: true,
+        container: source => {
+          source.setAttribute('id', 'suggest-list')
+          source.setAttribute('class', 'suggest-list')
         }
       },
-      minLength: 2,
-      autoFocus: true,
-      position: { of: '.search' }
+      resultItem: { content: (data, src) => { src.innerHTML = data.match } },
+      noResults: () => {
+        let result = document.createElement('li')
+        result.setAttribute('class', 'no_result')
+        result.setAttribute('tabindex', '1')
+        result.innerHTML = 'No Results'
+        document.querySelector('#suggest-list').appendChild(result)
+      },
+      onSelection: feedback => {
+        let stock = feedback.selection.value.split(' ')[0].split(':')
+        this.$router.push(`/stock/${stock[0]}/${stock[1]}`)
+        document.querySelector('#suggest').value = ''
+      }
     })
-  },
+  }
 }
