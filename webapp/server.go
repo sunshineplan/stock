@@ -36,7 +36,7 @@ func run() {
 		c.HTML(200, "index.html", gin.H{"user": username, "refresh": refresh})
 	})
 
-	auth := router.Group("/auth")
+	auth := router.Group("/")
 	auth.POST("/login", login)
 	auth.GET("/logout", authRequired, func(c *gin.Context) {
 		session := sessions.Default(c)

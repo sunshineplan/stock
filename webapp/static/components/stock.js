@@ -29,8 +29,8 @@ const stock = {
       </div>
       <a>Home</a>
     </div>
+    <realtime></realtime>
   </header>
-  <realtime></realtime>
   <chart></chart>
 </div>`,
   mounted() {
