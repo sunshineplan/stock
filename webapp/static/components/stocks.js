@@ -34,7 +34,7 @@ const stocks = {
         </tr>
       </thead>
       <tbody id='sortable'>
-        <tr v-for='stock in stocks' :key='stock.name' @click='gotoStock(stock)'>
+        <tr v-for='stock in stocks' :key='stock.index+stock.code' @click='gotoStock(stock)'>
           <td v-for='val in columns' :style='addColor(stock, val)'>{{ stock[val] }}</td>
         </tr>
       </tbody>
@@ -60,7 +60,7 @@ const stocks = {
   methods: {
     start() {
       this.load(true)
-      this.autoUpdate = setInterval(() => this.load(), this.refresh * 1000)
+      this.autoUpdate = setInterval(this.load, this.refresh * 1000)
     },
     stop() {
       this.fetching.abort()
