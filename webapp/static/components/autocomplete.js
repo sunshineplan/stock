@@ -16,11 +16,12 @@ const autocomplete = {
     this.autoComplete = new autoComplete({
       selector: '#suggest',
       data: { src: this.load, cache: false },
+      trigger: { event: ['keyup', 'focus'] },
       searchEngine: (query, record) => { return record },
       placeHolder: 'Search Stock',
       threshold: 1,
-      debounce: 300,
-      maxResults: 5,
+      debounce: 200,
+      maxResults: 10,
       resultsList: {
         render: true,
         container: source => {
@@ -40,9 +41,15 @@ const autocomplete = {
         this.suggest = ''
       }
     })
-    suggest.addEventListener('blur', () => suggestsList.style.display = 'none')
+    suggest.addEventListener('blur', this.hide)
     suggest.addEventListener('focus', () => suggestsList.style.display = 'block')
-    suggestsList.style.display = 'none'
+    suggest.addEventListener('keyup', evt => {
+      if (evt.key == 'Escape') {
+        this.suggest = ''
+        this.hide()
+      }
+    })
+    this.hide()
   },
   methods: {
     async load() {
@@ -52,6 +59,7 @@ const autocomplete = {
         return data.map(i => `${i.Index}:${i.Code} ${i.Name} ${i.Type}`)
       }
       return []
-    }
+    },
+    hide() { suggestsList.style.display = 'none' }
   }
 }
