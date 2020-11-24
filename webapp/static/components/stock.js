@@ -15,7 +15,7 @@ const stock = {
     code() { return this.$route.params.code }
   },
   watch: {
-    update(_, last) { if (last != '') this.updateChart() },
+    update(now, last) { if (now && last) this.updateChart() },
     async $route(to) { if (to.name == 'stock' && this.code != 'n/a') await this.load() }
   },
   components: { autocomplete, realtime, chart },
@@ -51,6 +51,7 @@ const stock = {
       }
     },
     async load() {
+      this.update = ''
       await this.loadRealtime(true)
       await this.loadChart(true)
       this.chart.options.scales.yAxes[0].ticks.suggestedMin = this.stock.last / 1.01
