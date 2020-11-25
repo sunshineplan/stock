@@ -8,11 +8,11 @@ const indices = {
   },
   template: `
 <div class='indices' v-if='Object.keys(indices).length !== 0'>
-  <a v-for='(val, key) in names' :id='key' @click='gotoStock(indices[key])'>
+  <div v-for='(val, key) in names' :id='key' @click='gotoStock(indices[key])'>
     <span class='short'>{{ key }}</span>
     <span class='full'>{{ val }}</span>
     <span v-for='field in fields' :style='addColor(indices[key], field)'>&nbsp;&nbsp;{{ indices[key][field] }}</span>
-  </a>
+  </div>
 </div>`,
   created() { this.start() },
   methods: {
