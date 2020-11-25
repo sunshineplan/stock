@@ -16,7 +16,7 @@ const autocomplete = {
     this.autoComplete = new autoComplete({
       selector: '#suggest',
       data: { src: this.load, cache: false },
-      trigger: { event: ['keyup', 'focus'] },
+      trigger: { event: ['input', 'focus'] },
       searchEngine: (query, record) => { return record },
       placeHolder: 'Search Stock',
       threshold: 1,
