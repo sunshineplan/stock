@@ -1,4 +1,4 @@
-name: Release
+name: Test
 
 on:
   push:
@@ -7,60 +7,26 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Create Release
-    runs-on: windows-latest
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.x'
 
-      - name: Test Code
-        run: |
-          go mod download
-          go build ./...
+    - name: Check out code
+      uses: actions/checkout@v2
 
-      - name: Delete Old Release
-        uses: actions/github-script@v3
-        with:
-          script: |
-            let release
-            try {
-              release = await github.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: 'v1.0'
-              })
-            } catch(e) {
-              console.error(e)
-              return
-            }
+    - name: Install dependencies
+      run: |
+        go get github.com/sunshineplan/gohttp
+        go get github.com/sunshineplan/stock
+        go get golang.org/x/text/encoding/simplifiedchinese
 
-            await github.repos.deleteRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: release.data.id
-            })
-
-            await github.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'tags/v1.0'
-            })
-
-      - name: Get Current Date
-        uses: actions/github-script@v3
-        id: date
-        with:
-          script: |
-            core.setOutput("date", new Date(new Date().getTime()+(8*3600*1000)).toISOString().split('T')[0])
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v1.0
-          release_name: ${{ steps.date.outputs.date }}
-          body: ${{ steps.date.outputs.date }}
-          draft: false
-          prerelease: false
+    - name: Run Unit tests
+      run: |
+        go test -v -race ./...
