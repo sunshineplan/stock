@@ -117,7 +117,7 @@ func Suggests(keyword string) []Suggest {
 	for _, f := range formats {
 		suggests = append(suggests, f.suggests(keyword)...)
 	}
-	return suggests
+	return removeDuplicate(suggests)
 }
 
 // SetTimeout sets http client timeout when fetching stocks.
@@ -126,4 +126,15 @@ func SetTimeout(duration int) {
 	for _, f := range formats {
 		f.setTimeout(duration)
 	}
+}
+
+func removeDuplicate(suggests []Suggest) (unique []Suggest) {
+	keys := make(map[Suggest]bool)
+	for _, i := range suggests {
+		if _, ok := keys[i]; !ok {
+			keys[i] = true
+			unique = append(unique, i)
+		}
+	}
+	return
 }
