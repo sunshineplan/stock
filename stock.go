@@ -128,7 +128,8 @@ func SetTimeout(duration int) {
 	}
 }
 
-func removeDuplicate(suggests []Suggest) (unique []Suggest) {
+func removeDuplicate(suggests []Suggest) []Suggest {
+	unique := []Suggest{}
 	keys := make(map[Suggest]bool)
 	for _, i := range suggests {
 		if _, ok := keys[i]; !ok {
@@ -136,5 +137,5 @@ func removeDuplicate(suggests []Suggest) (unique []Suggest) {
 			unique = append(unique, i)
 		}
 	}
-	return
+	return unique
 }
