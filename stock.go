@@ -5,6 +5,8 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/sunshineplan/utils"
 )
 
 // Stock represents a stock.
@@ -117,7 +119,7 @@ func Suggests(keyword string) []Suggest {
 	for _, f := range formats {
 		suggests = append(suggests, f.suggests(keyword)...)
 	}
-	return removeDuplicate(suggests)
+	return utils.Deduplicate(suggests).([]Suggest)
 }
 
 // SetTimeout sets http client timeout when fetching stocks.
@@ -126,16 +128,4 @@ func SetTimeout(duration int) {
 	for _, f := range formats {
 		f.setTimeout(duration)
 	}
-}
-
-func removeDuplicate(suggests []Suggest) []Suggest {
-	unique := []Suggest{}
-	keys := make(map[Suggest]bool)
-	for _, i := range suggests {
-		if _, ok := keys[i]; !ok {
-			keys[i] = true
-			unique = append(unique, i)
-		}
-	}
-	return unique
 }
