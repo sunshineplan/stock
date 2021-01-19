@@ -80,7 +80,8 @@ func (t *TXZQ) get() *TXZQ {
 	t.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
 	t.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
 	t.Realtime.Update = realtime[30].(string)
-	var buy5, sell5 []stock.SellBuy
+	buy5 := []stock.SellBuy{}
+	sell5 := []stock.SellBuy{}
 	for i := 9; i < 19; i += 2 {
 		price, _ := strconv.ParseFloat(realtime[i].(string), 64)
 		volume, _ := strconv.Atoi(realtime[i+1].(string))
@@ -95,6 +96,9 @@ func (t *TXZQ) get() *TXZQ {
 		!reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		t.Realtime.Buy5 = buy5
 		t.Realtime.Sell5 = sell5
+	} else {
+		t.Realtime.Buy5 = []stock.SellBuy{}
+		t.Realtime.Sell5 = []stock.SellBuy{}
 	}
 
 	chart, ok := data.(map[string]interface{})["data"].(map[string]interface{})["data"].([]interface{})

@@ -74,8 +74,8 @@ func (s *SZSE) get() *SZSE {
 	s.Realtime.Open, _ = strconv.ParseFloat(result.Data.Open, 64)
 	s.Realtime.Last, _ = strconv.ParseFloat(result.Data.Close, 64)
 	s.Realtime.Update = result.Data.MarketTime
-	var sell5 []stock.SellBuy
-	var buy5 []stock.SellBuy
+	sell5 := []stock.SellBuy{}
+	buy5 := []stock.SellBuy{}
 	for i, v := range result.Data.Sellbuy5 {
 		price, _ := strconv.ParseFloat(v.Price, 64)
 		if i < 5 {

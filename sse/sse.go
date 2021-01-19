@@ -69,7 +69,8 @@ func (s *SSE) getRealtime() *SSE {
 	s.Realtime.Open = r.Snap[2].(float64)
 	s.Realtime.Last = r.Snap[1].(float64)
 	s.Realtime.Update = fmt.Sprintf("%d.%d", r.Date, r.Time)
-	var sell5, buy5 []stock.SellBuy
+	sell5 := []stock.SellBuy{}
+	buy5 := []stock.SellBuy{}
 	for i := 0; i < 10; i += 2 {
 		sell5 = append(
 			sell5,
@@ -88,6 +89,9 @@ func (s *SSE) getRealtime() *SSE {
 		!reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
 		s.Realtime.Sell5 = sell5
 		s.Realtime.Buy5 = buy5
+	} else {
+		s.Realtime.Buy5 = []stock.SellBuy{}
+		s.Realtime.Sell5 = []stock.SellBuy{}
 	}
 	return s
 }
