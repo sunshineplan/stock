@@ -1,4 +1,4 @@
-module stock
+module github.com/sunshineplan/stock
 
 go 1.16
 
