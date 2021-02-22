@@ -10,8 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"stock"
+
 	"github.com/sunshineplan/gohttp"
-	"github.com/sunshineplan/stock"
 )
 
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`

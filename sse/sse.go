@@ -9,8 +9,9 @@ import (
 	"regexp"
 	"time"
 
+	"stock"
+
 	"github.com/sunshineplan/gohttp"
-	"github.com/sunshineplan/stock"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
