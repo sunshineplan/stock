@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"stock"
-
 	"github.com/sunshineplan/gohttp"
+	"github.com/sunshineplan/stock"
 )
 
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
