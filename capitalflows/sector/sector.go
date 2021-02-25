@@ -41,7 +41,7 @@ func query(date string, xy bool, collection *mongo.Collection) (interface{}, err
 	)
 	pipeline = append(pipeline, bson.M{"$sort": bson.M{"_id": 1}})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
 	cur, err := collection.Aggregate(ctx, pipeline)
