@@ -14,6 +14,9 @@ import (
 
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 
+const api = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
+const suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
+
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
@@ -51,13 +54,10 @@ func (s *SZSE) get() *SZSE {
 			PicUpData [][]interface{}
 		}
 	}
-	if err := gohttp.GetWithClient(
-		"http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="+s.Code,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).JSON(&result); err != nil {
+	if err := gohttp.GetWithClient(api+s.Code, nil, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	}).JSON(&result); err != nil {
 		log.Println("Failed to get szse:", err)
 		return s
 	}
@@ -107,14 +107,10 @@ func (s *SZSE) GetChart() stock.Chart {
 // Suggests returns szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	var result []struct{ WordB, Value, Type string }
-	if err := gohttp.PostWithClient(
-		"http://www.szse.cn/api/search/suggest?keyword="+keyword,
-		nil,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).JSON(&result); err != nil {
+	if err := gohttp.PostWithClient(suggestAPI+keyword, nil, nil, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	}).JSON(&result); err != nil {
 		log.Println("Failed to get szse suggest:", err)
 		return
 	}

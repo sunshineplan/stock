@@ -17,6 +17,9 @@ import (
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 
+const api = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
+const suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
+
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
@@ -45,13 +48,10 @@ func (t *TXZQ) get() *TXZQ {
 	default:
 		return t
 	}
-	resp := gohttp.GetWithClient(
-		"http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="+stk,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		})
+	resp := gohttp.GetWithClient(api+stk, nil, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	})
 	if resp.Error != nil {
 		log.Println("Failed to get txzq:", resp.Error)
 		return t
@@ -129,13 +129,10 @@ func (t *TXZQ) GetChart() stock.Chart {
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	for _, t := range []string{"gp", "jj"} {
-		result := gohttp.GetWithClient(
-			fmt.Sprintf("http://smartbox.gtimg.cn/s3/?t=%s&q=%s", t, keyword),
-			nil,
-			&http.Client{
-				Transport: &http.Transport{Proxy: nil},
-				Timeout:   Timeout,
-			}).String()
+		result := gohttp.GetWithClient(fmt.Sprintf(suggestAPI, t, keyword), nil, &http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   Timeout,
+		}).String()
 		sse := regexp.MustCompile(ssePattern)
 		szse := regexp.MustCompile(szsePattern)
 		for _, i := range split(result) {
