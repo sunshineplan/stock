@@ -54,26 +54,26 @@ func (e *EastMoney) getRealtime() *EastMoney {
 
 	var r struct {
 		Data struct {
-			F11  float64 // buy1 price
-			F12  int     // buy1 volume
-			F13  float64 // buy2 price
-			F14  int     // buy2 volume
+			F11  float64 // buy5 price
+			F12  int     // buy5 volume
+			F13  float64 // buy4 price
+			F14  int     // buy4 volume
 			F15  float64 // buy3 price
 			F16  int     // buy3 volume
-			F17  float64 // buy4 price
-			F18  int     // buy4 volume
-			F19  float64 // buy5 price
-			F20  int     // buy5 volume
-			F31  float64 // sell1 price
-			F32  int     // sell1 volume
-			F33  float64 // sell2 price
-			F34  int     // sell2 volume
+			F17  float64 // buy2 price
+			F18  int     // buy2 volume
+			F19  float64 // buy1 price
+			F20  int     // buy1 volume
+			F31  float64 // sell5 price
+			F32  int     // sell5 volume
+			F33  float64 // sell4 price
+			F34  int     // sell4 volume
 			F35  float64 // sell3 price
 			F36  int     // sell3 volume
-			F37  float64 // sell4 price
-			F38  int     // sell4 volume
-			F39  float64 // sell5 price
-			F40  int     // sell5 volume
+			F37  float64 // sell2 price
+			F38  int     // sell2 volume
+			F39  float64 // sell1 price
+			F40  int     // sell1 volume
 			F43  float64 // now
 			F44  float64 // high
 			F45  float64 // low
@@ -103,18 +103,18 @@ func (e *EastMoney) getRealtime() *EastMoney {
 	e.Realtime.Update = time.Now().Format(time.RFC3339)
 
 	e.Realtime.Buy5 = []stock.SellBuy{
-		{Price: r.Data.F11, Volume: r.Data.F12},
-		{Price: r.Data.F13, Volume: r.Data.F14},
-		{Price: r.Data.F15, Volume: r.Data.F16},
-		{Price: r.Data.F17, Volume: r.Data.F18},
 		{Price: r.Data.F19, Volume: r.Data.F20},
+		{Price: r.Data.F17, Volume: r.Data.F18},
+		{Price: r.Data.F15, Volume: r.Data.F16},
+		{Price: r.Data.F13, Volume: r.Data.F14},
+		{Price: r.Data.F11, Volume: r.Data.F12},
 	}
 	e.Realtime.Sell5 = []stock.SellBuy{
-		{Price: r.Data.F31, Volume: r.Data.F32},
-		{Price: r.Data.F33, Volume: r.Data.F34},
-		{Price: r.Data.F35, Volume: r.Data.F36},
-		{Price: r.Data.F37, Volume: r.Data.F38},
 		{Price: r.Data.F39, Volume: r.Data.F40},
+		{Price: r.Data.F37, Volume: r.Data.F38},
+		{Price: r.Data.F35, Volume: r.Data.F36},
+		{Price: r.Data.F33, Volume: r.Data.F34},
+		{Price: r.Data.F31, Volume: r.Data.F32},
 	}
 
 	if reflect.DeepEqual(e.Realtime.Sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
