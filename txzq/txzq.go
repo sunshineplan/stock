@@ -111,7 +111,9 @@ func (t *TXZQ) get() *TXZQ {
 		point := strings.Split(i.(string), " ")
 		x := point[0][0:2] + ":" + point[0][2:4]
 		y, _ := strconv.ParseFloat(point[1], 64)
-		t.Chart.Data = append(t.Chart.Data, stock.Point{X: x, Y: y})
+		if x != "13:00" {
+			t.Chart.Data = append(t.Chart.Data, stock.Point{X: x, Y: y})
+		}
 	}
 	return t
 }
