@@ -17,9 +17,10 @@ import (
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 
-const api = "http://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f531&secid="
+const api = "http://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
 const chartAPI = "http://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
-const suggestAPI = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=D43BF722C8E33BDC906FB84D85E326E8&input="
+const suggestAPI = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
+const suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
 
 // Timeout specifies a time limit for requeste.
 var Timeout time.Duration
@@ -53,32 +54,34 @@ func (e *EastMoney) getRealtime() *EastMoney {
 
 	var r struct {
 		Data struct {
-			F11 float64 // buy5 price
-			F12 int     // buy5 volume
-			F13 float64 // buy4 price
-			F14 int     // buy4 volume
-			F15 float64 // buy3 price
-			F16 int     // buy3 volume
-			F17 float64 // buy2 price
-			F18 int     // buy2 volume
-			F19 float64 // buy1 price
-			F20 int     // buy1 volume
-			F31 float64 // sell1 price
-			F32 int     // sell1 volume
-			F33 float64 // sell2 price
-			F34 int     // sell2 volume
-			F35 float64 // sell3 price
-			F36 int     // sell3 volume
-			F37 float64 // sell4 price
-			F38 int     // sell4 volume
-			F39 float64 // sell5 price
-			F40 int     // sell5 volume
-			F43 float64 // now
-			F44 float64 // high
-			F45 float64 // low
-			F46 float64 // open
-			F58 string  // name
-			F60 float64 // last
+			F11  float64 // buy1 price
+			F12  int     // buy1 volume
+			F13  float64 // buy2 price
+			F14  int     // buy2 volume
+			F15  float64 // buy3 price
+			F16  int     // buy3 volume
+			F17  float64 // buy4 price
+			F18  int     // buy4 volume
+			F19  float64 // buy5 price
+			F20  int     // buy5 volume
+			F31  float64 // sell1 price
+			F32  int     // sell1 volume
+			F33  float64 // sell2 price
+			F34  int     // sell2 volume
+			F35  float64 // sell3 price
+			F36  int     // sell3 volume
+			F37  float64 // sell4 price
+			F38  int     // sell4 volume
+			F39  float64 // sell5 price
+			F40  int     // sell5 volume
+			F43  float64 // now
+			F44  float64 // high
+			F45  float64 // low
+			F46  float64 // open
+			F58  string  // name
+			F60  float64 // last
+			F169 float64 // change
+			F170 float64 // percent
 		}
 	}
 	if err := gohttp.GetWithClient(api+stk, nil, &http.Client{
@@ -95,17 +98,16 @@ func (e *EastMoney) getRealtime() *EastMoney {
 	e.Realtime.Low = r.Data.F45
 	e.Realtime.Open = r.Data.F46
 	e.Realtime.Last = r.Data.F60
+	e.Realtime.Change = r.Data.F169
+	e.Realtime.Percent = fmt.Sprintf("%g%%", r.Data.F170)
 	e.Realtime.Update = time.Now().Format(time.RFC3339)
 
-	e.Realtime.Change = e.Realtime.Now - e.Realtime.Last
-	e.Realtime.Percent = fmt.Sprintf("%.2f%%", (e.Realtime.Now-e.Realtime.Last)/e.Realtime.Last*100)
-
 	e.Realtime.Buy5 = []stock.SellBuy{
-		{Price: r.Data.F19, Volume: r.Data.F20},
-		{Price: r.Data.F17, Volume: r.Data.F18},
-		{Price: r.Data.F15, Volume: r.Data.F16},
-		{Price: r.Data.F13, Volume: r.Data.F14},
 		{Price: r.Data.F11, Volume: r.Data.F12},
+		{Price: r.Data.F13, Volume: r.Data.F14},
+		{Price: r.Data.F15, Volume: r.Data.F16},
+		{Price: r.Data.F17, Volume: r.Data.F18},
+		{Price: r.Data.F19, Volume: r.Data.F20},
 	}
 	e.Realtime.Sell5 = []stock.SellBuy{
 		{Price: r.Data.F31, Volume: r.Data.F32},
@@ -183,7 +185,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			}
 		}
 	}
-	if err := gohttp.GetWithClient(suggestAPI+keyword, nil, &http.Client{
+	if err := gohttp.GetWithClient(fmt.Sprintf(suggestAPI, suggestToken, keyword), nil, &http.Client{
 		Transport: &http.Transport{Proxy: nil},
 		Timeout:   Timeout,
 	}).JSON(&result); err != nil {
