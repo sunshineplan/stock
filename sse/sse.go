@@ -16,6 +16,10 @@ import (
 
 const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
 
+const api = "http://yunhq.sse.com.cn:32041/v1/sh1/snap/"
+const chartAPI = "http://yunhq.sse.com.cn:32041/v1/sh1/line/"
+const suggestAPI = "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="
+
 // Timeout specifies a time limit for requests.
 var Timeout time.Duration
 
@@ -34,13 +38,10 @@ type SSE struct {
 func (s *SSE) getRealtime() *SSE {
 	s.Realtime.Index = "SSE"
 	s.Realtime.Code = s.Code
-	resp := gohttp.GetWithClient(
-		"http://yunhq.sse.com.cn:32041/v1/sh1/snap/"+s.Code,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		})
+	resp := gohttp.GetWithClient(api+s.Code, nil, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	})
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
 		return s
@@ -101,13 +102,10 @@ func (s *SSE) getChart() *SSE {
 		PrevClose float64 `json:"prev_close"`
 		Line      [][]interface{}
 	}
-	if err := gohttp.GetWithClient(
-		"http://yunhq.sse.com.cn:32041/v1/sh1/line/"+s.Code,
-		nil,
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).JSON(&r); err != nil {
+	if err := gohttp.GetWithClient(chartAPI+s.Code, nil, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	}).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
 		return s
 	}
@@ -143,13 +141,10 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 	var result struct {
 		Data []struct{ Category, Code, Word string }
 	}
-	if err := gohttp.GetWithClient(
-		"http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="+keyword,
-		gohttp.H{"Referer": "http://www.sse.com.cn/"},
-		&http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).JSON(&result); err != nil {
+	if err := gohttp.GetWithClient(suggestAPI+keyword, gohttp.H{"Referer": "http://www.sse.com.cn/"}, &http.Client{
+		Transport: &http.Transport{Proxy: nil},
+		Timeout:   Timeout,
+	}).JSON(&result); err != nil {
 		log.Println("Failed to get sse suggest:", err)
 		return
 	}
