@@ -74,8 +74,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/sunshineplan/gohttp v0.0.0-20210623132405-98faedfc64b4 h1:gNI86OGI0XQBurBQ26IGQyoW+z9dSVjwtDMEJdOoQvo=
-github.com/sunshineplan/gohttp v0.0.0-20210623132405-98faedfc64b4/go.mod h1:0S9nCy6TGyR45MLTLNs45GX5KRNyrU84BaFpz9P6508=
+github.com/sunshineplan/gohttp v0.0.0-20210630011641-5b6cc891ec35 h1:bwPbR57eo8K0SJEHqbYaxYQqnE/g1ghWWMpCLeQE2Q0=
+github.com/sunshineplan/gohttp v0.0.0-20210630011641-5b6cc891ec35/go.mod h1:0S9nCy6TGyR45MLTLNs45GX5KRNyrU84BaFpz9P6508=
 github.com/sunshineplan/utils v0.0.0-20210624055436-282dca1240dc h1:rJ5oUy7a1VSN5QiQgCUIFwiGQLwoj7UFKBEzJLdU9Dg=
 github.com/sunshineplan/utils v0.0.0-20210624055436-282dca1240dc/go.mod h1:fJ8/Fjbd50RwQ8/wxBmBgkuDHfcXrCJu6c/iRsgkYok=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=

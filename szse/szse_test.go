@@ -13,6 +13,9 @@ func TestSZSE(t *testing.T) {
 
 func TestSuggests(t *testing.T) {
 	s := Suggests("nbyh")
+	if len(s) == 0 {
+		t.Fatal("no result")
+	}
 	if n := s[0].Name; n != "宁波银行" {
 		t.Errorf("expected %q; got %q", "宁波银行", n)
 	}
