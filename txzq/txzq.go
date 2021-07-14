@@ -3,7 +3,6 @@ package txzq
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -20,12 +19,11 @@ const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 const api = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
 const suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
 
-// Timeout specifies a time limit for requests.
-var Timeout time.Duration
+var s = gohttp.NewSession()
 
 // SetTimeout sets http client timeout when fetching stocks.
 func SetTimeout(duration int) {
-	Timeout = time.Duration(duration) * time.Second
+	s.SetTimeout(time.Duration(duration) * time.Second)
 }
 
 // TXZQ represents 腾讯证券.
@@ -36,50 +34,48 @@ type TXZQ struct {
 	Chart    stock.Chart
 }
 
-func (t *TXZQ) get() *TXZQ {
-	t.Realtime.Index = t.Index
-	t.Realtime.Code = t.Code
-	var stk string
-	switch strings.ToLower(t.Index) {
+func (txzq *TXZQ) get() *TXZQ {
+	txzq.Realtime.Index = txzq.Index
+	txzq.Realtime.Code = txzq.Code
+
+	var code string
+	switch strings.ToLower(txzq.Index) {
 	case "sse":
-		stk = "sh" + t.Code
+		code = "sh" + txzq.Code
 	case "szse":
-		stk = "sz" + t.Code
+		code = "sz" + txzq.Code
 	default:
-		return t
+		return txzq
 	}
-	resp := gohttp.GetWithClient(api+stk, nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	})
-	if resp.Error != nil {
-		log.Println("Failed to get txzq:", resp.Error)
-		return t
-	}
+
 	var r struct{ Data map[string]interface{} }
-	if err := resp.JSON(&r); err != nil {
-		log.Println("Unmarshal json Error:", err)
-		return t
+	if err := s.Get(api+code, nil).JSON(&r); err != nil {
+		log.Println("Failed to get txzq:", err)
+		return txzq
 	}
-	data, ok := r.Data[stk]
+
+	data, ok := r.Data[code]
 	if !ok {
-		log.Println("Failed to get this stock:", stk)
-		return t
+		log.Println("Failed to get this stock:", code)
+		return txzq
 	}
-	realtime, ok := data.(map[string]interface{})["qt"].(map[string]interface{})[stk].([]interface{})
+
+	realtime, ok := data.(map[string]interface{})["qt"].(map[string]interface{})[code].([]interface{})
 	if !ok {
 		log.Println("Failed to get this stock realtime")
-		return t
+		return txzq
 	}
-	t.Realtime.Name = realtime[1].(string)
-	t.Realtime.Now, _ = strconv.ParseFloat(realtime[3].(string), 64)
-	t.Realtime.Change, _ = strconv.ParseFloat(realtime[31].(string), 64)
-	t.Realtime.Percent = realtime[32].(string) + "%"
-	t.Realtime.High, _ = strconv.ParseFloat(realtime[33].(string), 64)
-	t.Realtime.Low, _ = strconv.ParseFloat(realtime[34].(string), 64)
-	t.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
-	t.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
-	t.Realtime.Update = realtime[30].(string)
+
+	txzq.Realtime.Name = realtime[1].(string)
+	txzq.Realtime.Now, _ = strconv.ParseFloat(realtime[3].(string), 64)
+	txzq.Realtime.Change, _ = strconv.ParseFloat(realtime[31].(string), 64)
+	txzq.Realtime.Percent = realtime[32].(string) + "%"
+	txzq.Realtime.High, _ = strconv.ParseFloat(realtime[33].(string), 64)
+	txzq.Realtime.Low, _ = strconv.ParseFloat(realtime[34].(string), 64)
+	txzq.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
+	txzq.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
+	txzq.Realtime.Update = realtime[30].(string)
+
 	buy5 := []stock.SellBuy{}
 	sell5 := []stock.SellBuy{}
 	for i := 9; i < 19; i += 2 {
@@ -94,47 +90,45 @@ func (t *TXZQ) get() *TXZQ {
 	}
 	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) ||
 		!reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		t.Realtime.Buy5 = buy5
-		t.Realtime.Sell5 = sell5
+		txzq.Realtime.Buy5 = buy5
+		txzq.Realtime.Sell5 = sell5
 	} else {
-		t.Realtime.Buy5 = []stock.SellBuy{}
-		t.Realtime.Sell5 = []stock.SellBuy{}
+		txzq.Realtime.Buy5 = []stock.SellBuy{}
+		txzq.Realtime.Sell5 = []stock.SellBuy{}
 	}
 
 	chart, ok := data.(map[string]interface{})["data"].(map[string]interface{})["data"].([]interface{})
 	if !ok {
 		log.Println("Failed to get this stock chart")
-		return t
+		return txzq
 	}
-	t.Chart.Last = t.Realtime.Last
+	txzq.Chart.Last = txzq.Realtime.Last
 	for _, i := range chart {
 		point := strings.Split(i.(string), " ")
 		x := point[0][0:2] + ":" + point[0][2:4]
 		y, _ := strconv.ParseFloat(point[1], 64)
 		if x != "13:00" {
-			t.Chart.Data = append(t.Chart.Data, stock.Point{X: x, Y: y})
+			txzq.Chart.Data = append(txzq.Chart.Data, stock.Point{X: x, Y: y})
 		}
 	}
-	return t
+
+	return txzq
 }
 
 // GetRealtime gets the stock's realtime information.
-func (t *TXZQ) GetRealtime() stock.Realtime {
-	return t.get().Realtime
+func (txzq *TXZQ) GetRealtime() stock.Realtime {
+	return txzq.get().Realtime
 }
 
 // GetChart gets the stock's chart data.
-func (t *TXZQ) GetChart() stock.Chart {
-	return t.get().Chart
+func (txzq *TXZQ) GetChart() stock.Chart {
+	return txzq.get().Chart
 }
 
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	for _, t := range []string{"gp", "jj"} {
-		result := gohttp.GetWithClient(fmt.Sprintf(suggestAPI, t, keyword), nil, &http.Client{
-			Transport: &http.Transport{Proxy: nil},
-			Timeout:   Timeout,
-		}).String()
+		result := s.Get(fmt.Sprintf(suggestAPI, t, keyword), nil).String()
 		sse := regexp.MustCompile(ssePattern)
 		szse := regexp.MustCompile(szsePattern)
 		for _, i := range split(result) {
@@ -153,6 +147,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			}
 		}
 	}
+
 	return
 }
 
@@ -162,13 +157,16 @@ func split(suggest string) (suggests [][]string) {
 			log.Println("Recovered in", suggest)
 		}
 	}()
+
 	s := strings.Split(suggest, `"`)
 	if s[1] == "N" {
 		return
 	}
+
 	for _, i := range strings.Split(s[1], "^") {
 		suggests = append(suggests, strings.Split(i, "~"))
 	}
+
 	return
 }
 
@@ -182,6 +180,7 @@ func init() {
 		Suggests,
 		SetTimeout,
 	)
+
 	stock.RegisterStock(
 		"szse",
 		szsePattern,

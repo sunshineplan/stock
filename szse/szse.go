@@ -2,7 +2,6 @@ package szse
 
 import (
 	"log"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,12 +16,11 @@ const szsePattern = `(00[0-3]|159|300|399)\d{3}`
 const api = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
 const suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
 
-// Timeout specifies a time limit for requests.
-var Timeout time.Duration
+var s = gohttp.NewSession()
 
 // SetTimeout sets http client timeout when fetching stocks.
 func SetTimeout(duration int) {
-	Timeout = time.Duration(duration) * time.Second
+	s.SetTimeout(time.Duration(duration) * time.Second)
 }
 
 // SZSE represents Shenzhen Stock Exchange.
@@ -32,10 +30,11 @@ type SZSE struct {
 	Chart    stock.Chart
 }
 
-func (s *SZSE) get() *SZSE {
-	s.Realtime.Index = "SZSE"
-	s.Realtime.Code = s.Code
-	var result struct {
+func (szse *SZSE) get() *SZSE {
+	szse.Realtime.Index = "SZSE"
+	szse.Realtime.Code = szse.Code
+
+	var r struct {
 		Code string
 		Data struct {
 			Name         string
@@ -54,29 +53,28 @@ func (s *SZSE) get() *SZSE {
 			PicUpData [][]interface{}
 		}
 	}
-	if err := gohttp.GetWithClient(api+s.Code, nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	}).JSON(&result); err != nil {
+	if err := s.Get(api+szse.Code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get szse:", err)
-		return s
+		return szse
 	}
-	if result.Code != "0" {
+	if r.Code != "0" {
 		log.Println("Data code not equal zero.")
-		return s
+		return szse
 	}
-	s.Realtime.Name = result.Data.Name
-	s.Realtime.Now, _ = strconv.ParseFloat(result.Data.Now, 64)
-	s.Realtime.Change, _ = strconv.ParseFloat(result.Data.Delta, 64)
-	s.Realtime.Percent = result.Data.DeltaPercent + "%"
-	s.Realtime.High, _ = strconv.ParseFloat(result.Data.High, 64)
-	s.Realtime.Low, _ = strconv.ParseFloat(result.Data.Low, 64)
-	s.Realtime.Open, _ = strconv.ParseFloat(result.Data.Open, 64)
-	s.Realtime.Last, _ = strconv.ParseFloat(result.Data.Close, 64)
-	s.Realtime.Update = result.Data.MarketTime
+
+	szse.Realtime.Name = r.Data.Name
+	szse.Realtime.Now, _ = strconv.ParseFloat(r.Data.Now, 64)
+	szse.Realtime.Change, _ = strconv.ParseFloat(r.Data.Delta, 64)
+	szse.Realtime.Percent = r.Data.DeltaPercent + "%"
+	szse.Realtime.High, _ = strconv.ParseFloat(r.Data.High, 64)
+	szse.Realtime.Low, _ = strconv.ParseFloat(r.Data.Low, 64)
+	szse.Realtime.Open, _ = strconv.ParseFloat(r.Data.Open, 64)
+	szse.Realtime.Last, _ = strconv.ParseFloat(r.Data.Close, 64)
+	szse.Realtime.Update = r.Data.MarketTime
+
 	sell5 := []stock.SellBuy{}
 	buy5 := []stock.SellBuy{}
-	for i, v := range result.Data.Sellbuy5 {
+	for i, v := range r.Data.Sellbuy5 {
 		price, _ := strconv.ParseFloat(v.Price, 64)
 		if i < 5 {
 			sell5 = append(sell5, stock.SellBuy{Price: price, Volume: v.Volume})
@@ -84,38 +82,39 @@ func (s *SZSE) get() *SZSE {
 			buy5 = append(buy5, stock.SellBuy{Price: price, Volume: v.Volume})
 		}
 	}
-	s.Realtime.Sell5 = sell5
-	s.Realtime.Buy5 = buy5
-	s.Chart.Last = s.Realtime.Last
-	for _, i := range result.Data.PicUpData {
+	szse.Realtime.Sell5 = sell5
+	szse.Realtime.Buy5 = buy5
+
+	szse.Chart.Last = szse.Realtime.Last
+
+	for _, i := range r.Data.PicUpData {
 		y, _ := strconv.ParseFloat(i[1].(string), 64)
-		s.Chart.Data = append(s.Chart.Data, stock.Point{X: i[0].(string), Y: y})
+		szse.Chart.Data = append(szse.Chart.Data, stock.Point{X: i[0].(string), Y: y})
 	}
-	return s
+
+	return szse
 }
 
 // GetRealtime gets the szse stock's realtime information.
-func (s *SZSE) GetRealtime() stock.Realtime {
-	return s.get().Realtime
+func (szse *SZSE) GetRealtime() stock.Realtime {
+	return szse.get().Realtime
 }
 
 // GetChart gets the szse stock's chart data.
-func (s *SZSE) GetChart() stock.Chart {
-	return s.get().Chart
+func (szse *SZSE) GetChart() stock.Chart {
+	return szse.get().Chart
 }
 
 // Suggests returns szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
-	var result []struct{ WordB, Value, Type string }
-	if err := gohttp.PostWithClient(suggestAPI+keyword, nil, nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	}).JSON(&result); err != nil {
+	var r []struct{ WordB, Value, Type string }
+	if err := s.Post(suggestAPI+keyword, nil, nil).JSON(&r); err != nil {
 		log.Println("Failed to get szse suggest:", err)
 		return
 	}
+
 	re := regexp.MustCompile(szsePattern)
-	for _, i := range result {
+	for _, i := range r {
 		if code := strings.ReplaceAll(strings.ReplaceAll(i.WordB, `<span class="keyword">`, ""), "</span>", ""); re.MatchString(code) {
 			suggests = append(suggests, stock.Suggest{
 				Index: "SZSE",
@@ -125,6 +124,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			})
 		}
 	}
+
 	return
 }
 

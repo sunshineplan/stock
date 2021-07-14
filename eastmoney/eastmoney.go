@@ -3,7 +3,6 @@ package eastmoney
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -22,12 +21,11 @@ const chartAPI = "http://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fie
 const suggestAPI = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
 const suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
 
-// Timeout specifies a time limit for requeste.
-var Timeout time.Duration
+var s = gohttp.NewSession()
 
-// SetTimeout sets http client timeout when fetching stocke.
+// SetTimeout sets http client timeout when fetching stocks.
 func SetTimeout(duration int) {
-	Timeout = time.Duration(duration) * time.Second
+	s.SetTimeout(time.Duration(duration) * time.Second)
 }
 
 // EastMoney represents 东方财富网.
@@ -38,18 +36,18 @@ type EastMoney struct {
 	Chart    stock.Chart
 }
 
-func (e *EastMoney) getRealtime() *EastMoney {
-	e.Realtime.Index = e.Index
-	e.Realtime.Code = e.Code
+func (eastmoney *EastMoney) getRealtime() *EastMoney {
+	eastmoney.Realtime.Index = eastmoney.Index
+	eastmoney.Realtime.Code = eastmoney.Code
 
-	var stk string
-	switch strings.ToLower(e.Index) {
+	var code string
+	switch strings.ToLower(eastmoney.Index) {
 	case "sse":
-		stk = "1." + e.Code
+		code = "1." + eastmoney.Code
 	case "szse":
-		stk = "0." + e.Code
+		code = "0." + eastmoney.Code
 	default:
-		return e
+		return eastmoney
 	}
 
 	var r struct {
@@ -84,32 +82,29 @@ func (e *EastMoney) getRealtime() *EastMoney {
 			F170 float64 // percent
 		}
 	}
-	if err := gohttp.GetWithClient(api+stk, nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	}).JSON(&r); err != nil {
+	if err := s.Get(api+code, nil).JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
-		return e
+		return eastmoney
 	}
 
-	e.Realtime.Name = r.Data.F58
-	e.Realtime.Now = r.Data.F43
-	e.Realtime.High = r.Data.F44
-	e.Realtime.Low = r.Data.F45
-	e.Realtime.Open = r.Data.F46
-	e.Realtime.Last = r.Data.F60
-	e.Realtime.Change = r.Data.F169
-	e.Realtime.Percent = fmt.Sprintf("%g%%", r.Data.F170)
-	e.Realtime.Update = time.Now().Format(time.RFC3339)
+	eastmoney.Realtime.Name = r.Data.F58
+	eastmoney.Realtime.Now = r.Data.F43
+	eastmoney.Realtime.High = r.Data.F44
+	eastmoney.Realtime.Low = r.Data.F45
+	eastmoney.Realtime.Open = r.Data.F46
+	eastmoney.Realtime.Last = r.Data.F60
+	eastmoney.Realtime.Change = r.Data.F169
+	eastmoney.Realtime.Percent = fmt.Sprintf("%g%%", r.Data.F170)
+	eastmoney.Realtime.Update = time.Now().Format(time.RFC3339)
 
-	e.Realtime.Buy5 = []stock.SellBuy{
+	eastmoney.Realtime.Buy5 = []stock.SellBuy{
 		{Price: r.Data.F19, Volume: r.Data.F20},
 		{Price: r.Data.F17, Volume: r.Data.F18},
 		{Price: r.Data.F15, Volume: r.Data.F16},
 		{Price: r.Data.F13, Volume: r.Data.F14},
 		{Price: r.Data.F11, Volume: r.Data.F12},
 	}
-	e.Realtime.Sell5 = []stock.SellBuy{
+	eastmoney.Realtime.Sell5 = []stock.SellBuy{
 		{Price: r.Data.F39, Volume: r.Data.F40},
 		{Price: r.Data.F37, Volume: r.Data.F38},
 		{Price: r.Data.F35, Volume: r.Data.F36},
@@ -117,24 +112,24 @@ func (e *EastMoney) getRealtime() *EastMoney {
 		{Price: r.Data.F31, Volume: r.Data.F32},
 	}
 
-	if reflect.DeepEqual(e.Realtime.Sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
-		reflect.DeepEqual(e.Realtime.Buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		e.Realtime.Buy5 = []stock.SellBuy{}
-		e.Realtime.Sell5 = []stock.SellBuy{}
+	if reflect.DeepEqual(eastmoney.Realtime.Sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
+		reflect.DeepEqual(eastmoney.Realtime.Buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+		eastmoney.Realtime.Buy5 = []stock.SellBuy{}
+		eastmoney.Realtime.Sell5 = []stock.SellBuy{}
 	}
 
-	return e
+	return eastmoney
 }
 
-func (e *EastMoney) getChart() *EastMoney {
-	var stk string
-	switch strings.ToLower(e.Index) {
+func (eastmoney *EastMoney) getChart() *EastMoney {
+	var code string
+	switch strings.ToLower(eastmoney.Index) {
 	case "sse":
-		stk = "1." + e.Code
+		code = "1." + eastmoney.Code
 	case "szse":
-		stk = "0." + e.Code
+		code = "0." + eastmoney.Code
 	default:
-		return e
+		return eastmoney
 	}
 
 	var r struct {
@@ -143,39 +138,36 @@ func (e *EastMoney) getChart() *EastMoney {
 			Trends   []string
 		}
 	}
-	if err := gohttp.GetWithClient(chartAPI+stk, nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	}).JSON(&r); err != nil {
+	if err := s.Get(chartAPI+code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get eastmoney chart:", err)
-		return e
+		return eastmoney
 	}
 
-	e.Chart.Last = r.Data.PreClose
+	eastmoney.Chart.Last = r.Data.PreClose
 
 	for _, i := range r.Data.Trends {
 		data := strings.Split(strings.Split(i, " ")[1], ",")
 		x := data[0]
 		y, _ := strconv.ParseFloat(data[1], 64)
-		e.Chart.Data = append(e.Chart.Data, stock.Point{X: x, Y: y})
+		eastmoney.Chart.Data = append(eastmoney.Chart.Data, stock.Point{X: x, Y: y})
 	}
 
-	return e
+	return eastmoney
 }
 
 // GetRealtime gets the stock's realtime information.
-func (e *EastMoney) GetRealtime() stock.Realtime {
-	return e.getRealtime().Realtime
+func (eastmoney *EastMoney) GetRealtime() stock.Realtime {
+	return eastmoney.getRealtime().Realtime
 }
 
 // GetChart gets the stock's chart data.
-func (e *EastMoney) GetChart() stock.Chart {
-	return e.getChart().Chart
+func (eastmoney *EastMoney) GetChart() stock.Chart {
+	return eastmoney.getChart().Chart
 }
 
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
-	var result struct {
+	var r struct {
 		QuotationCodeTable struct {
 			Data []struct {
 				Code             string
@@ -185,10 +177,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			}
 		}
 	}
-	if err := gohttp.GetWithClient(fmt.Sprintf(suggestAPI, suggestToken, keyword), nil, &http.Client{
-		Transport: &http.Transport{Proxy: nil},
-		Timeout:   Timeout,
-	}).JSON(&result); err != nil {
+	if err := gohttp.Get(fmt.Sprintf(suggestAPI, suggestToken, keyword), nil).JSON(&r); err != nil {
 		log.Println("Failed to get eastmoney suggest:", err)
 		return
 	}
@@ -196,7 +185,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 	sse := regexp.MustCompile(ssePattern)
 	szse := regexp.MustCompile(szsePattern)
 
-	for _, i := range result.QuotationCodeTable.Data {
+	for _, i := range r.QuotationCodeTable.Data {
 		switch i.MarketType {
 		case "1":
 			if sse.MatchString(i.Code) {
@@ -224,6 +213,7 @@ func init() {
 		Suggests,
 		SetTimeout,
 	)
+
 	stock.RegisterStock(
 		"szse",
 		szsePattern,
