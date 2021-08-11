@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/sunshineplan/utils"
 )
 
 func TestFlows(t *testing.T) {
-	flows, err := Fetch()
-	if err != nil {
+	var flows CapitalFlows
+	if err := utils.Retry(func() (e error) {
+		flows, e = Fetch()
+		return
+	}, 5, 20); err != nil {
 		t.Fatal(err)
 	}
 

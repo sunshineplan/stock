@@ -18,7 +18,7 @@ func TestEastMoney(t *testing.T) {
 				return errors.New("retry")
 			}
 			return nil
-		}, 3, 10,
+		}, 5, 20,
 	)
 	if name != "万华化学" {
 		t.Errorf("expected %q; got %q", "万华化学", name)
@@ -32,7 +32,7 @@ func TestEastMoney(t *testing.T) {
 				return errors.New("retry")
 			}
 			return nil
-		}, 3, 10,
+		}, 5, 20,
 	)
 	if name != "宁波银行" {
 		t.Errorf("expected %q; got %q", "宁波银行", name)
@@ -48,7 +48,7 @@ func TestSuggests(t *testing.T) {
 				return errors.New("retry")
 			}
 			return nil
-		}, 3, 10,
+		}, 5, 20,
 	)
 	if len(s) == 0 {
 		t.Fatal("no result")
@@ -64,7 +64,7 @@ func TestSuggests(t *testing.T) {
 				return errors.New("retry")
 			}
 			return nil
-		}, 3, 10,
+		}, 5, 20,
 	)
 	if len(s) == 0 {
 		t.Fatal("no result")

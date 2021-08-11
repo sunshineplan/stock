@@ -93,13 +93,13 @@ func Fetch() (cf CapitalFlows, err error) {
 		data[v.F14] = int64(v.F62)
 	}
 
-	var jsonbody []byte
-	jsonbody, err = json.Marshal(data)
+	var b []byte
+	b, err = json.Marshal(data)
 	if err != nil {
 		return
 	}
 
-	err = json.Unmarshal(jsonbody, &cf)
+	err = json.Unmarshal(b, &cf)
 
 	return
 }
