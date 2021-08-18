@@ -13,18 +13,9 @@ import (
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
-const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
-
 const api = "http://yunhq.sse.com.cn:32041/v1/sh1/snap/"
 const chartAPI = "http://yunhq.sse.com.cn:32041/v1/sh1/line/"
 const suggestAPI = "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="
-
-var s = gohttp.NewSession()
-
-// SetTimeout sets http client timeout when fetching stocks.
-func SetTimeout(duration int) {
-	s.SetTimeout(time.Duration(duration) * time.Second)
-}
 
 // SSE represents Shanghai Stock Exchange.
 type SSE struct {
@@ -37,7 +28,7 @@ func (sse *SSE) getRealtime() *SSE {
 	sse.Realtime.Index = "SSE"
 	sse.Realtime.Code = sse.Code
 
-	resp := s.Get(api+sse.Code, nil)
+	resp := stock.Session.Get(api+sse.Code, nil)
 	if resp.Error != nil {
 		log.Println("Failed to get sse realtime:", resp.Error)
 		return sse
@@ -103,7 +94,7 @@ func (sse *SSE) getChart() *SSE {
 		PrevClose float64 `json:"prev_close"`
 		Line      [][]interface{}
 	}
-	if err := s.Get(chartAPI+sse.Code, nil).JSON(&r); err != nil {
+	if err := stock.Session.Get(chartAPI+sse.Code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
 		return sse
 	}
@@ -146,7 +137,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 		return
 	}
 
-	re := regexp.MustCompile(ssePattern)
+	re := regexp.MustCompile(stock.SSEPattern)
 	for _, i := range r.Data {
 		if re.MatchString(i.Code) {
 			suggests = append(suggests, stock.Suggest{
@@ -164,11 +155,10 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 func init() {
 	stock.RegisterStock(
 		"sse",
-		ssePattern,
+		stock.SSEPattern,
 		func(code string) stock.Stock {
 			return &SSE{Code: code}
 		},
 		Suggests,
-		SetTimeout,
 	)
 }

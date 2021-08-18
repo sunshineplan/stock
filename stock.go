@@ -5,9 +5,26 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
+	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/utils"
 )
+
+const (
+	SSEPattern  = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
+	SZSEPattern = `(00[0-3]|159|30[0-1]|399)\d{3}`
+)
+
+var Session = gohttp.NewSession()
+
+// SetTimeout sets Session's timeout.
+func SetTimeout(duration int) {
+	if duration <= 0 {
+		panic("duration must greater than 0")
+	}
+	Session.SetTimeout(time.Duration(duration) * time.Second)
+}
 
 // Stock represents a stock.
 type Stock interface {
@@ -17,11 +34,10 @@ type Stock interface {
 
 // A format holds an stock format's index, pattern and how to decode it.
 type format struct {
-	index      string
-	pattern    string
-	init       func(string) Stock
-	suggests   func(string) []Suggest
-	setTimeout func(int)
+	index    string
+	pattern  string
+	init     func(string) Stock
+	suggests func(string) []Suggest
 }
 
 // Formats is the list of registered formats.
@@ -31,10 +47,10 @@ var (
 )
 
 // RegisterStock registers an stock format for use by Decode.
-func RegisterStock(index, pattern string, init func(string) Stock, suggests func(string) []Suggest, setTimeout func(int)) {
+func RegisterStock(index, pattern string, init func(string) Stock, suggests func(string) []Suggest) {
 	formatsMu.Lock()
 	formats, _ := atomicFormats.Load().([]format)
-	atomicFormats.Store(append(formats, format{index, pattern, init, suggests, setTimeout}))
+	atomicFormats.Store(append(formats, format{index, pattern, init, suggests}))
 	formatsMu.Unlock()
 }
 
@@ -120,12 +136,4 @@ func Suggests(keyword string) []Suggest {
 		suggests = append(suggests, f.suggests(keyword)...)
 	}
 	return utils.Deduplicate(suggests).([]Suggest)
-}
-
-// SetTimeout sets http client timeout when fetching stocks.
-func SetTimeout(duration int) {
-	formats, _ := atomicFormats.Load().([]format)
-	for _, f := range formats {
-		f.setTimeout(duration)
-	}
 }

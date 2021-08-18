@@ -5,23 +5,12 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/stock"
 )
 
-const szsePattern = `(00[0-3]|159|300|399)\d{3}`
-
 const api = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
 const suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
-
-var s = gohttp.NewSession()
-
-// SetTimeout sets http client timeout when fetching stocks.
-func SetTimeout(duration int) {
-	s.SetTimeout(time.Duration(duration) * time.Second)
-}
 
 // SZSE represents Shenzhen Stock Exchange.
 type SZSE struct {
@@ -53,7 +42,7 @@ func (szse *SZSE) get() *SZSE {
 			PicUpData [][]interface{}
 		}
 	}
-	if err := s.Get(api+szse.Code, nil).JSON(&r); err != nil {
+	if err := stock.Session.Get(api+szse.Code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get szse:", err)
 		return szse
 	}
@@ -108,12 +97,12 @@ func (szse *SZSE) GetChart() stock.Chart {
 // Suggests returns szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	var r []struct{ WordB, Value, Type string }
-	if err := s.Post(suggestAPI+keyword, nil, nil).JSON(&r); err != nil {
+	if err := stock.Session.Post(suggestAPI+keyword, nil, nil).JSON(&r); err != nil {
 		log.Println("Failed to get szse suggest:", err)
 		return
 	}
 
-	re := regexp.MustCompile(szsePattern)
+	re := regexp.MustCompile(stock.SZSEPattern)
 	for _, i := range r {
 		if code := strings.ReplaceAll(strings.ReplaceAll(i.WordB, `<span class="keyword">`, ""), "</span>", ""); re.MatchString(code) {
 			suggests = append(suggests, stock.Suggest{
@@ -131,11 +120,10 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 func init() {
 	stock.RegisterStock(
 		"szse",
-		szsePattern,
+		stock.SZSEPattern,
 		func(code string) stock.Stock {
 			return &SZSE{Code: code}
 		},
 		Suggests,
-		SetTimeout,
 	)
 }

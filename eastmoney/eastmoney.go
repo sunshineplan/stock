@@ -13,20 +13,10 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
-const szsePattern = `(00[0-3]|159|300|399)\d{3}`
-
 const api = "http://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
 const chartAPI = "http://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
 const suggestAPI = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
 const suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
-
-var s = gohttp.NewSession()
-
-// SetTimeout sets http client timeout when fetching stocks.
-func SetTimeout(duration int) {
-	s.SetTimeout(time.Duration(duration) * time.Second)
-}
 
 // EastMoney represents 东方财富网.
 type EastMoney struct {
@@ -82,7 +72,7 @@ func (eastmoney *EastMoney) getRealtime() *EastMoney {
 			F170 float64 // percent
 		}
 	}
-	if err := s.Get(api+code, nil).JSON(&r); err != nil {
+	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return eastmoney
 	}
@@ -138,7 +128,7 @@ func (eastmoney *EastMoney) getChart() *EastMoney {
 			Trends   []string
 		}
 	}
-	if err := s.Get(chartAPI+code, nil).JSON(&r); err != nil {
+	if err := stock.Session.Get(chartAPI+code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get eastmoney chart:", err)
 		return eastmoney
 	}
@@ -182,8 +172,8 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 		return
 	}
 
-	sse := regexp.MustCompile(ssePattern)
-	szse := regexp.MustCompile(szsePattern)
+	sse := regexp.MustCompile(stock.SSEPattern)
+	szse := regexp.MustCompile(stock.SZSEPattern)
 
 	for _, i := range r.QuotationCodeTable.Data {
 		switch i.MarketType {
@@ -206,23 +196,21 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 func init() {
 	stock.RegisterStock(
 		"sse",
-		ssePattern,
+		stock.SSEPattern,
 		func(code string) stock.Stock {
 			return &EastMoney{Index: "SSE", Code: code}
 		},
 		Suggests,
-		SetTimeout,
 	)
 
 	stock.RegisterStock(
 		"szse",
-		szsePattern,
+		stock.SZSEPattern,
 		func(code string) stock.Stock {
 			return &EastMoney{Index: "SZSE", Code: code}
 		},
 		func(_ string) []stock.Suggest {
 			return nil
 		},
-		SetTimeout,
 	)
 }

@@ -7,24 +7,12 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/stock"
 )
 
-const ssePattern = `000[0-1]\d{2}|(51[0-358]|60[0-3]|688)\d{3}`
-const szsePattern = `(00[0-3]|159|300|399)\d{3}`
-
 const api = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
 const suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
-
-var s = gohttp.NewSession()
-
-// SetTimeout sets http client timeout when fetching stocks.
-func SetTimeout(duration int) {
-	s.SetTimeout(time.Duration(duration) * time.Second)
-}
 
 // TXZQ represents 腾讯证券.
 type TXZQ struct {
@@ -49,7 +37,7 @@ func (txzq *TXZQ) get() *TXZQ {
 	}
 
 	var r struct{ Data map[string]interface{} }
-	if err := s.Get(api+code, nil).JSON(&r); err != nil {
+	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get txzq:", err)
 		return txzq
 	}
@@ -128,9 +116,9 @@ func (txzq *TXZQ) GetChart() stock.Chart {
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	for _, t := range []string{"gp", "jj"} {
-		result := s.Get(fmt.Sprintf(suggestAPI, t, keyword), nil).String()
-		sse := regexp.MustCompile(ssePattern)
-		szse := regexp.MustCompile(szsePattern)
+		result := stock.Session.Get(fmt.Sprintf(suggestAPI, t, keyword), nil).String()
+		sse := regexp.MustCompile(stock.SSEPattern)
+		szse := regexp.MustCompile(stock.SZSEPattern)
 		for _, i := range split(result) {
 			name, _ := strconv.Unquote(fmt.Sprintf(`"%s"`, i[2]))
 			switch i[0] {
@@ -173,23 +161,21 @@ func split(suggest string) (suggests [][]string) {
 func init() {
 	stock.RegisterStock(
 		"sse",
-		ssePattern,
+		stock.SSEPattern,
 		func(code string) stock.Stock {
 			return &TXZQ{Index: "SSE", Code: code}
 		},
 		Suggests,
-		SetTimeout,
 	)
 
 	stock.RegisterStock(
 		"szse",
-		szsePattern,
+		stock.SZSEPattern,
 		func(code string) stock.Stock {
 			return &TXZQ{Index: "SZSE", Code: code}
 		},
 		func(_ string) []stock.Suggest {
 			return nil
 		},
-		SetTimeout,
 	)
 }

@@ -3,7 +3,7 @@ package capitalflows
 import (
 	"encoding/json"
 
-	"github.com/sunshineplan/gohttp"
+	"github.com/sunshineplan/stock"
 )
 
 const api = "http://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=500&fields=f14%2Cf62&fs=m%3A90%2Bt%3A2"
@@ -84,7 +84,7 @@ func Fetch() (cf CapitalFlows, err error) {
 			Total int
 		}
 	}
-	if err = gohttp.Get(api, nil).JSON(&res); err != nil {
+	if err = stock.Session.Get(api, nil).JSON(&res); err != nil {
 		return
 	}
 
