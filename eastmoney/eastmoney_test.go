@@ -65,6 +65,34 @@ func TestEastMoney(t *testing.T) {
 	if name != "东方财富" {
 		t.Errorf("expected %q; got %q", "东方财富", name)
 	}
+
+	s = EastMoney{Index: "BSE", Code: "430047"}
+	utils.Retry(
+		func() error {
+			name = s.getRealtime().Realtime.Name
+			if name != "诺思兰德" {
+				return errors.New("retry")
+			}
+			return nil
+		}, 5, 20,
+	)
+	if name != "诺思兰德" {
+		t.Errorf("expected %q; got %q", "诺思兰德", name)
+	}
+
+	s = EastMoney{Index: "BSE", Code: "834021"}
+	utils.Retry(
+		func() error {
+			name = s.getRealtime().Realtime.Name
+			if name != "流金岁月" {
+				return errors.New("retry")
+			}
+			return nil
+		}, 5, 20,
+	)
+	if name != "流金岁月" {
+		t.Errorf("expected %q; got %q", "流金岁月", name)
+	}
 }
 
 func TestSuggests(t *testing.T) {
@@ -131,5 +159,37 @@ func TestSuggests(t *testing.T) {
 	}
 	if n := s[0].Name; n != "东方财富" {
 		t.Errorf("expected %q; got %q", "东方财富", n)
+	}
+
+	utils.Retry(
+		func() error {
+			s = Suggests("nsld")
+			if len(s) == 0 {
+				return errors.New("retry")
+			}
+			return nil
+		}, 5, 20,
+	)
+	if len(s) == 0 {
+		t.Fatal("no result")
+	}
+	if n := s[0].Name; n != "诺思兰德" {
+		t.Errorf("expected %q; got %q", "诺思兰德", n)
+	}
+
+	utils.Retry(
+		func() error {
+			s = Suggests("ljsy")
+			if len(s) == 0 {
+				return errors.New("retry")
+			}
+			return nil
+		}, 5, 20,
+	)
+	if len(s) == 0 {
+		t.Fatal("no result")
+	}
+	if n := s[0].Name; n != "流金岁月" {
+		t.Errorf("expected %q; got %q", "流金岁月", n)
 	}
 }

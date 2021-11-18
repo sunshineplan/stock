@@ -34,7 +34,7 @@ func (eastmoney *EastMoney) getRealtime() *EastMoney {
 	switch strings.ToLower(eastmoney.Index) {
 	case "sse":
 		code = "1." + eastmoney.Code
-	case "szse":
+	case "szse", "bse":
 		code = "0." + eastmoney.Code
 	default:
 		return eastmoney
@@ -116,7 +116,7 @@ func (eastmoney *EastMoney) getChart() *EastMoney {
 	switch strings.ToLower(eastmoney.Index) {
 	case "sse":
 		code = "1." + eastmoney.Code
-	case "szse":
+	case "szse", "bse":
 		code = "0." + eastmoney.Code
 	default:
 		return eastmoney
@@ -174,6 +174,7 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 
 	sse := regexp.MustCompile(stock.SSEPattern)
 	szse := regexp.MustCompile(stock.SZSEPattern)
+	bse := regexp.MustCompile(stock.BSEPattern)
 
 	for _, i := range r.QuotationCodeTable.Data {
 		switch i.MarketType {
@@ -186,6 +187,11 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			if szse.MatchString(i.Code) {
 				suggests = append(suggests,
 					stock.Suggest{Index: "SZSE", Code: i.Code, Name: i.Name, Type: i.SecurityTypeName})
+			}
+		case "_TB":
+			if bse.MatchString(i.Code) {
+				suggests = append(suggests,
+					stock.Suggest{Index: "BSE", Code: i.Code, Name: i.Name, Type: i.SecurityTypeName})
 			}
 		}
 	}
@@ -208,6 +214,17 @@ func init() {
 		stock.SZSEPattern,
 		func(code string) stock.Stock {
 			return &EastMoney{Index: "SZSE", Code: code}
+		},
+		func(_ string) []stock.Suggest {
+			return nil
+		},
+	)
+
+	stock.RegisterStock(
+		"bse",
+		stock.BSEPattern,
+		func(code string) stock.Stock {
+			return &EastMoney{Index: "BSE", Code: code}
 		},
 		func(_ string) []stock.Suggest {
 			return nil
