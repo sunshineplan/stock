@@ -109,6 +109,9 @@ func TestSuggests(t *testing.T) {
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
+	if i := s[0].Index; i != "SSE" {
+		t.Errorf("expected %q; got %q", "SSE", i)
+	}
 	if n := s[0].Name; n != "万华化学" {
 		t.Errorf("expected %q; got %q", "万华化学", n)
 	}
@@ -124,6 +127,9 @@ func TestSuggests(t *testing.T) {
 	)
 	if len(s) == 0 {
 		t.Fatal("no result")
+	}
+	if i := s[0].Index; i != "SSE" {
+		t.Errorf("expected %q; got %q", "SSE", i)
 	}
 	if n := s[0].Name; n != "财富趋势" {
 		t.Errorf("expected %q; got %q", "财富趋势", n)
@@ -141,6 +147,9 @@ func TestSuggests(t *testing.T) {
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
+	if i := s[0].Index; i != "SZSE" {
+		t.Errorf("expected %q; got %q", "SZSE", i)
+	}
 	if n := s[0].Name; n != "宁波银行" {
 		t.Errorf("expected %q; got %q", "宁波银行", n)
 	}
@@ -156,6 +165,9 @@ func TestSuggests(t *testing.T) {
 	)
 	if len(s) == 0 {
 		t.Fatal("no result")
+	}
+	if i := s[0].Index; i != "SZSE" {
+		t.Errorf("expected %q; got %q", "SZSE", i)
 	}
 	if n := s[0].Name; n != "东方财富" {
 		t.Errorf("expected %q; got %q", "东方财富", n)
@@ -173,6 +185,9 @@ func TestSuggests(t *testing.T) {
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
+	if i := s[0].Index; i != "BSE" {
+		t.Errorf("expected %q; got %q", "BSE", i)
+	}
 	if n := s[0].Name; n != "诺思兰德" {
 		t.Errorf("expected %q; got %q", "诺思兰德", n)
 	}
@@ -188,6 +203,9 @@ func TestSuggests(t *testing.T) {
 	)
 	if len(s) == 0 {
 		t.Fatal("no result")
+	}
+	if i := s[0].Index; i != "BSE" {
+		t.Errorf("expected %q; got %q", "BSE", i)
 	}
 	if n := s[0].Name; n != "流金岁月" {
 		t.Errorf("expected %q; got %q", "流金岁月", n)

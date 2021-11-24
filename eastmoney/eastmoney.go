@@ -215,9 +215,7 @@ func init() {
 		func(code string) stock.Stock {
 			return &EastMoney{Index: "SZSE", Code: code}
 		},
-		func(_ string) []stock.Suggest {
-			return nil
-		},
+		func(_ string) []stock.Suggest { return nil },
 	)
 
 	stock.RegisterStock(
@@ -226,8 +224,6 @@ func init() {
 		func(code string) stock.Stock {
 			return &EastMoney{Index: "BSE", Code: code}
 		},
-		func(_ string) []stock.Suggest {
-			return nil
-		},
+		func(_ string) []stock.Suggest { return nil },
 	)
 }
