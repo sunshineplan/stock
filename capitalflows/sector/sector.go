@@ -1,60 +1,47 @@
 package sector
 
 import (
-	"context"
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/sunshineplan/database/mongodb/api"
 )
 
 // TimeLine contains one day timeline data.
 type TimeLine struct {
-	Sector   string `json:"sector" bson:"_id"`
+	Sector   string `json:"sector"`
 	TimeLine []map[string]int64
 }
 
 // Chart contains one day chart data.
 type Chart struct {
-	Sector string `json:"sector" bson:"_id"`
-	Chart  []struct {
-		X string `json:"x"`
-		Y int64  `json:"y"`
-	} `json:"chart"`
+	Sector string `json:"sector"`
+	Chart  []XY   `json:"chart"`
 }
 
-func query(date string, xy bool, collection *mongo.Collection) (interface{}, error) {
-	var pipeline []interface{}
-	pipeline = append(pipeline, bson.M{"$match": bson.M{"date": date}})
-	pipeline = append(pipeline, bson.M{"$project": bson.M{"time": 1, "flows": bson.M{"$objectToArray": "$flows"}}})
-	pipeline = append(pipeline, bson.M{"$unwind": "$flows"})
-	pipeline = append(pipeline,
-		bson.M{
-			"$group": bson.D{
-				bson.E{Key: "_id", Value: "$flows.k"},
-				bson.E{Key: "chart", Value: bson.M{"$push": bson.D{
-					bson.E{Key: "x", Value: "$time"},
-					bson.E{Key: "y", Value: "$flows.v"},
-				}}},
-			},
-		},
-	)
-	pipeline = append(pipeline, bson.M{"$sort": bson.M{"_id": 1}})
+type XY struct {
+	X string `json:"x"`
+	Y int64  `json:"y"`
+}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
-	defer cancel()
-
-	cur, err := collection.Aggregate(ctx, pipeline)
-	if err != nil {
+func query(date string, xy bool, client *api.Client) (interface{}, error) {
+	var data []struct {
+		ID    string `json:"_id"`
+		Chart []XY   `json:"chart"`
+	}
+	if err := client.Aggregate([]api.M{
+		{"$match": api.M{"date": date}},
+		{"$project": api.M{"time": 1, "flows": api.M{"$objectToArray": "$flows"}}},
+		{"$unwind": "$flows"},
+		{"$group": api.M{
+			"_id":   "$flows.k",
+			"chart": api.M{"$push": api.M{"x": "$time", "y": "$flows.v"}},
+		}},
+		{"$sort": api.M{"_id": 1}},
+	}, &data); err != nil {
 		return nil, err
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	var charts []Chart
-	if err := cur.All(ctx, &charts); err != nil {
-		return nil, err
+	for _, i := range data {
+		charts = append(charts, Chart{i.ID, i.Chart})
 	}
 
 	if xy {
@@ -70,8 +57,8 @@ func query(date string, xy bool, collection *mongo.Collection) (interface{}, err
 }
 
 // GetTimeLine gets all sectors timeline data of one day.
-func GetTimeLine(date string, collection *mongo.Collection) ([]TimeLine, error) {
-	res, err := query(date, false, collection)
+func GetTimeLine(date string, client *api.Client) ([]TimeLine, error) {
+	res, err := query(date, false, client)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +67,8 @@ func GetTimeLine(date string, collection *mongo.Collection) ([]TimeLine, error) 
 }
 
 // GetChart gets all sectors chart data of one day.
-func GetChart(date string, collection *mongo.Collection) ([]Chart, error) {
-	res, err := query(date, true, collection)
+func GetChart(date string, client *api.Client) ([]Chart, error) {
+	res, err := query(date, true, client)
 	if err != nil {
 		return nil, err
 	}
@@ -101,18 +88,12 @@ func Chart2TimeLine(chart Chart) TimeLine {
 
 // TimeLine2Chart convert TimeLine to Chart.
 func TimeLine2Chart(timeline TimeLine) Chart {
-	var data []struct {
-		X string `json:"x"`
-		Y int64  `json:"y"`
-	}
+	var xy []XY
 	for _, i := range timeline.TimeLine {
 		for k, v := range i {
-			data = append(data, struct {
-				X string `json:"x"`
-				Y int64  `json:"y"`
-			}{X: k, Y: v})
+			xy = append(xy, XY{k, v})
 		}
 	}
 
-	return Chart{Sector: timeline.Sector, Chart: data}
+	return Chart{Sector: timeline.Sector, Chart: xy}
 }
