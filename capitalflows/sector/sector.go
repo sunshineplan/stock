@@ -1,7 +1,7 @@
 package sector
 
 import (
-	"github.com/sunshineplan/database/mongodb/api"
+	"github.com/sunshineplan/database/mongodb"
 )
 
 // TimeLine contains one day timeline data.
@@ -21,20 +21,20 @@ type XY struct {
 	Y int64  `json:"y"`
 }
 
-func query(date string, xy bool, client *api.Client) (interface{}, error) {
+func query(date string, xy bool, client mongodb.Client) (interface{}, error) {
 	var data []struct {
 		ID    string `json:"_id"`
 		Chart []XY   `json:"chart"`
 	}
-	if err := client.Aggregate([]api.M{
-		{"$match": api.M{"date": date}},
-		{"$project": api.M{"time": 1, "flows": api.M{"$objectToArray": "$flows"}}},
+	if err := client.Aggregate([]mongodb.M{
+		{"$match": mongodb.M{"date": date}},
+		{"$project": mongodb.M{"time": 1, "flows": mongodb.M{"$objectToArray": "$flows"}}},
 		{"$unwind": "$flows"},
-		{"$group": api.M{
+		{"$group": mongodb.M{
 			"_id":   "$flows.k",
-			"chart": api.M{"$push": api.M{"x": "$time", "y": "$flows.v"}},
+			"chart": mongodb.M{"$push": mongodb.M{"x": "$time", "y": "$flows.v"}},
 		}},
-		{"$sort": api.M{"_id": 1}},
+		{"$sort": mongodb.M{"_id": 1}},
 	}, &data); err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func query(date string, xy bool, client *api.Client) (interface{}, error) {
 }
 
 // GetTimeLine gets all sectors timeline data of one day.
-func GetTimeLine(date string, client *api.Client) ([]TimeLine, error) {
+func GetTimeLine(date string, client mongodb.Client) ([]TimeLine, error) {
 	res, err := query(date, false, client)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func GetTimeLine(date string, client *api.Client) ([]TimeLine, error) {
 }
 
 // GetChart gets all sectors chart data of one day.
-func GetChart(date string, client *api.Client) ([]Chart, error) {
+func GetChart(date string, client mongodb.Client) ([]Chart, error) {
 	res, err := query(date, true, client)
 	if err != nil {
 		return nil, err
