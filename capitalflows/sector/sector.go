@@ -6,8 +6,8 @@ import (
 
 // TimeLine contains one day timeline data.
 type TimeLine struct {
-	Sector   string `json:"sector"`
-	TimeLine []map[string]int64
+	Sector   string             `json:"sector"`
+	TimeLine []map[string]int64 `json:"timeline"`
 }
 
 // Chart contains one day chart data.
@@ -23,8 +23,8 @@ type XY struct {
 
 func query(date string, xy bool, client mongodb.Client) (interface{}, error) {
 	var data []struct {
-		ID    string `json:"_id"`
-		Chart []XY   `json:"chart"`
+		ID    string `json:"_id" bson:"_id"`
+		Chart []XY
 	}
 	if err := client.Aggregate([]mongodb.M{
 		{"$match": mongodb.M{"date": date}},

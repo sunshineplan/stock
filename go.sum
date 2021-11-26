@@ -1,5 +1,5 @@
-github.com/sunshineplan/database/mongodb v1.0.1 h1:lx6llaCJA7aVkuRcQrlYFkn2CklFuWgOGwqBpezj6Vo=
-github.com/sunshineplan/database/mongodb v1.0.1/go.mod h1:nAe7RUd55h9xuFWeZsewNGjYfRGu5NTntPRrVTgOoqM=
+github.com/sunshineplan/database/mongodb v1.0.4 h1:LQFMN3eNnRQccfiALFP2YAn36Ozo6viNWfxGSZcogCk=
+github.com/sunshineplan/database/mongodb v1.0.4/go.mod h1:nAe7RUd55h9xuFWeZsewNGjYfRGu5NTntPRrVTgOoqM=
 github.com/sunshineplan/gohttp v1.0.0 h1:1Ldr9L8pGmy8w5RSkbXUEVwzLzmc3waz9wxHTjJuhHU=
 github.com/sunshineplan/gohttp v1.0.0/go.mod h1:0S9nCy6TGyR45MLTLNs45GX5KRNyrU84BaFpz9P6508=
 github.com/sunshineplan/utils v0.0.20 h1:OGn/ljXgxdBpOR6xOTwIsh3A9CI8OMdlEf+oIK8I9sc=
