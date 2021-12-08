@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/sunshineplan/database/mongodb v1.0.4
 	github.com/sunshineplan/gohttp v1.0.2
-	github.com/sunshineplan/utils v0.0.23
+	github.com/sunshineplan/utils v0.0.24
 	golang.org/x/text v0.3.7
 )
 
