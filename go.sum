@@ -1,11 +1,11 @@
 github.com/sunshineplan/database/mongodb v1.0.4 h1:LQFMN3eNnRQccfiALFP2YAn36Ozo6viNWfxGSZcogCk=
 github.com/sunshineplan/database/mongodb v1.0.4/go.mod h1:nAe7RUd55h9xuFWeZsewNGjYfRGu5NTntPRrVTgOoqM=
-github.com/sunshineplan/gohttp v1.0.1 h1:9PR37XDBTgiQWTzTR7D7PmW7jxjCAthLtLRnpLrhgWI=
-github.com/sunshineplan/gohttp v1.0.1/go.mod h1:E9WfaQU8yu/QLUKNkbocbleNBPMDUox4CI4hm0UbIqE=
+github.com/sunshineplan/gohttp v1.0.2 h1:yqPbdv0VVgtU6sFWxCc1pNghNSQI7EFVdOgFMztOKrU=
+github.com/sunshineplan/gohttp v1.0.2/go.mod h1:6ETpgffOt/gQjfgRonc61WrwqJyybczDiaiLY6DCTho=
 github.com/sunshineplan/utils v0.0.23 h1:fNSHaG2GnbkhtYR2Ok14s7ZDLLB/zwxynEWC3GPKR4g=
 github.com/sunshineplan/utils v0.0.23/go.mod h1:95AdNDzwlNcOSwYsCEFIzDOC/osnR3EnIeE5UmbN/SE=
-golang.org/x/net v0.0.0-20211205041911-012df41ee64c h1:7SfqwP5fxEtl/P02w5IhKc86ziJ+A25yFrkVgoy2FT8=
-golang.org/x/net v0.0.0-20211205041911-012df41ee64c/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
+golang.org/x/net v0.0.0-20211208000202-04296fa82e83 h1:mfTgaSp8OlMh7Fswkf4bUirzDYYy9r+aDoH1RtOv4dc=
+golang.org/x/net v0.0.0-20211208000202-04296fa82e83/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20210423082822-04245dca01da/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
