@@ -11,8 +11,12 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-const api = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
-const suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
+const (
+	api        = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
+	suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
+)
+
+var _ stock.Stock = &TXZQ{}
 
 // TXZQ represents 腾讯证券.
 type TXZQ struct {

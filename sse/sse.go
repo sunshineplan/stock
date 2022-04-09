@@ -11,9 +11,13 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-const api = "http://yunhq.sse.com.cn:32041/v1/sh1/snap/"
-const chartAPI = "http://yunhq.sse.com.cn:32041/v1/sh1/line/"
-const suggestAPI = "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="
+const (
+	api        = "http://yunhq.sse.com.cn:32041/v1/sh1/snap/"
+	chartAPI   = "http://yunhq.sse.com.cn:32041/v1/sh1/line/"
+	suggestAPI = "http://query.sse.com.cn/search/getPrepareSearchResult.do?search=ycxjs&searchword="
+)
+
+var _ stock.Stock = &SSE{}
 
 // SSE represents Shanghai Stock Exchange.
 type SSE struct {

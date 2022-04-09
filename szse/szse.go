@@ -9,8 +9,12 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-const api = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
-const suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
+const (
+	api        = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
+	suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
+)
+
+var _ stock.Stock = &SZSE{}
 
 // SZSE represents Shenzhen Stock Exchange.
 type SZSE struct {

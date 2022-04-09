@@ -13,10 +13,14 @@ import (
 	"github.com/sunshineplan/stock"
 )
 
-const api = "http://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
-const chartAPI = "http://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
-const suggestAPI = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
-const suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
+const (
+	api          = "http://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
+	chartAPI     = "http://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
+	suggestAPI   = "http://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
+	suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
+)
+
+var _ stock.Stock = &EastMoney{}
 
 // EastMoney represents 东方财富网.
 type EastMoney struct {
