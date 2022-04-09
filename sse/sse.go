@@ -1,7 +1,6 @@
 package sse
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/stock"
-	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 const api = "http://yunhq.sse.com.cn:32041/v1/sh1/snap/"
@@ -28,25 +26,12 @@ func (sse *SSE) getRealtime() *SSE {
 	sse.Realtime.Index = "SSE"
 	sse.Realtime.Code = sse.Code
 
-	resp := stock.Session.Get(api+sse.Code, nil)
-	if resp.Error != nil {
-		log.Println("Failed to get sse realtime:", resp.Error)
-		return sse
-	}
-
-	d := simplifiedchinese.GBK.NewDecoder()
-	utf8data, err := d.Bytes(resp.Bytes())
-	if err != nil {
-		log.Println("Fail to convert gb2312:", err)
-		return sse
-	}
-
 	var r struct {
 		Date int
 		Time int
 		Snap []interface{}
 	}
-	if err := json.Unmarshal(utf8data, &r); err != nil {
+	if err := stock.Session.Get(api+sse.Code, nil).JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return sse
 	}
