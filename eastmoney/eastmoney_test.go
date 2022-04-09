@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/sunshineplan/stock"
-	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/retry"
 )
 
 func TestEastMoney(t *testing.T) {
 	var name string
 	s := EastMoney{Index: "SSE", Code: "600309"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "万华化学" {
@@ -25,7 +25,7 @@ func TestEastMoney(t *testing.T) {
 	}
 
 	s = EastMoney{Index: "SSE", Code: "688318"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "财富趋势" {
@@ -39,7 +39,7 @@ func TestEastMoney(t *testing.T) {
 	}
 
 	s = EastMoney{Index: "SZSE", Code: "002142"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "宁波银行" {
@@ -53,7 +53,7 @@ func TestEastMoney(t *testing.T) {
 	}
 
 	s = EastMoney{Index: "SZSE", Code: "300059"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "东方财富" {
@@ -67,7 +67,7 @@ func TestEastMoney(t *testing.T) {
 	}
 
 	s = EastMoney{Index: "BSE", Code: "430047"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "诺思兰德" {
@@ -81,7 +81,7 @@ func TestEastMoney(t *testing.T) {
 	}
 
 	s = EastMoney{Index: "BSE", Code: "834021"}
-	utils.Retry(
+	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
 			if name != "流金岁月" {
@@ -97,7 +97,7 @@ func TestEastMoney(t *testing.T) {
 
 func TestSuggests(t *testing.T) {
 	var s []stock.Suggest
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("whhx")
 			if len(s) == 0 {
@@ -116,7 +116,7 @@ func TestSuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "万华化学", n)
 	}
 
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("cfqs")
 			if len(s) == 0 {
@@ -135,7 +135,7 @@ func TestSuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "财富趋势", n)
 	}
 
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("nbyh")
 			if len(s) == 0 {
@@ -154,7 +154,7 @@ func TestSuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "宁波银行", n)
 	}
 
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("dfcf")
 			if len(s) == 0 {
@@ -173,7 +173,7 @@ func TestSuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "东方财富", n)
 	}
 
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("nsld")
 			if len(s) == 0 {
@@ -192,7 +192,7 @@ func TestSuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "诺思兰德", n)
 	}
 
-	utils.Retry(
+	retry.Do(
 		func() error {
 			s = Suggests("ljsy")
 			if len(s) == 0 {

@@ -5,12 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/retry"
 )
 
 func TestFlows(t *testing.T) {
 	var flows CapitalFlows
-	if err := utils.Retry(func() (e error) {
+	if err := retry.Do(func() (e error) {
 		flows, e = Fetch()
 		return
 	}, 5, 20); err != nil {

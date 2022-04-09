@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/sunshineplan/gohttp"
-	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/slice"
 )
 
 const (
@@ -136,5 +136,5 @@ func Suggests(keyword string) []Suggest {
 	for _, f := range formats {
 		suggests = append(suggests, f.suggests(keyword)...)
 	}
-	return utils.Deduplicate(suggests).([]Suggest)
+	return slice.Deduplicate(suggests)
 }
