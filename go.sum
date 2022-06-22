@@ -2,7 +2,7 @@ github.com/sunshineplan/database/mongodb v1.0.4 h1:LQFMN3eNnRQccfiALFP2YAn36Ozo6
 github.com/sunshineplan/database/mongodb v1.0.4/go.mod h1:nAe7RUd55h9xuFWeZsewNGjYfRGu5NTntPRrVTgOoqM=
 github.com/sunshineplan/gohttp v1.0.4 h1:LKcPOBGE0JWUO3Unx0jCfXnQtrXoa/vXkmPkaARAzEA=
 github.com/sunshineplan/gohttp v1.0.4/go.mod h1:6ETpgffOt/gQjfgRonc61WrwqJyybczDiaiLY6DCTho=
-github.com/sunshineplan/utils v0.1.2 h1:c0IhBHe9L6REpZ2uCQM+AdWkZ7eBugBJRRLiR2IVOLM=
-github.com/sunshineplan/utils v0.1.2/go.mod h1:HfKwfZdb8gYzo451GrkSqdNQE6xVRtdLJ6gZV5XRaC4=
+github.com/sunshineplan/utils v0.1.3 h1:SnlS1AwACM9QDU+lKK29qLdR4268d4jx+jbSvkfsKjQ=
+github.com/sunshineplan/utils v0.1.3/go.mod h1:HfKwfZdb8gYzo451GrkSqdNQE6xVRtdLJ6gZV5XRaC4=
 golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3 h1:EN5+DfgmRMvRUrMGERW2gQl3Vc+Z7ZMnI/xdEpPSf0c=
 golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3/go.mod h1:CfG3xpIq0wQ8r1q4Su4UZFWDARRcnwPjda9FqA0JpMk=
