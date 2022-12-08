@@ -21,7 +21,7 @@ type XY struct {
 	Y int64  `json:"y"`
 }
 
-func query(date string, xy bool, client mongodb.Client) (interface{}, error) {
+func query(date string, xy bool, client mongodb.Client) (any, error) {
 	var data []struct {
 		ID    string `json:"_id" bson:"_id"`
 		Chart []XY

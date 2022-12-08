@@ -1,6 +1,6 @@
 module github.com/sunshineplan/stock
 
-go 1.18
+go 1.19
 
 require (
 	github.com/sunshineplan/database/mongodb v1.0.5
@@ -8,4 +8,4 @@ require (
 	github.com/sunshineplan/utils v0.1.10
 )
 
-require golang.org/x/net v0.0.0-20220812174116-3211cb980234 // indirect
+require golang.org/x/net v0.3.0 // indirect

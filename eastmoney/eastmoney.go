@@ -30,133 +30,138 @@ type EastMoney struct {
 	Chart    stock.Chart
 }
 
-func (eastmoney *EastMoney) getRealtime() *EastMoney {
-	eastmoney.Realtime.Index = eastmoney.Index
-	eastmoney.Realtime.Code = eastmoney.Code
+type eastmoney struct {
+	Data struct {
+		Now     float64 `json:"F43"`
+		High    float64 `json:"F44"`
+		Low     float64 `json:"F45"`
+		Open    float64 `json:"F46"`
+		Name    string  `json:"F58"`
+		Last    float64 `json:"F60"`
+		Change  float64 `json:"F169"`
+		Percent float64 `json:"F170"`
 
-	var code string
-	switch strings.ToLower(eastmoney.Index) {
-	case "sse":
-		code = "1." + eastmoney.Code
-	case "szse", "bse":
-		code = "0." + eastmoney.Code
-	default:
-		return eastmoney
+		Buy5Price   float64 `json:"F11"`
+		Buy5Volume  int     `json:"F12"`
+		Buy4Price   float64 `json:"F13"`
+		Buy4Volume  int     `json:"F14"`
+		Buy3Price   float64 `json:"F15"`
+		Buy3Volume  int     `json:"F16"`
+		Buy2Price   float64 `json:"F17"`
+		Buy2Volume  int     `json:"F18"`
+		Buy1Price   float64 `json:"F19"`
+		Buy1Volume  int     `json:"F20"`
+		Sell5Price  float64 `json:"F31"`
+		Sell5Volume int     `json:"F32"`
+		Sell4Price  float64 `json:"F33"`
+		Sell4Volume int     `json:"F34"`
+		Sell3Price  float64 `json:"F35"`
+		Sell3Volume int     `json:"F36"`
+		Sell2Price  float64 `json:"F37"`
+		Sell2Volume int     `json:"F38"`
+		Sell1Price  float64 `json:"F39"`
+		Sell1Volume int     `json:"F40"`
 	}
-
-	var r struct {
-		Data struct {
-			F11  float64 // buy5 price
-			F12  int     // buy5 volume
-			F13  float64 // buy4 price
-			F14  int     // buy4 volume
-			F15  float64 // buy3 price
-			F16  int     // buy3 volume
-			F17  float64 // buy2 price
-			F18  int     // buy2 volume
-			F19  float64 // buy1 price
-			F20  int     // buy1 volume
-			F31  float64 // sell5 price
-			F32  int     // sell5 volume
-			F33  float64 // sell4 price
-			F34  int     // sell4 volume
-			F35  float64 // sell3 price
-			F36  int     // sell3 volume
-			F37  float64 // sell2 price
-			F38  int     // sell2 volume
-			F39  float64 // sell1 price
-			F40  int     // sell1 volume
-			F43  float64 // now
-			F44  float64 // high
-			F45  float64 // low
-			F46  float64 // open
-			F58  string  // name
-			F60  float64 // last
-			F169 float64 // change
-			F170 float64 // percent
-		}
-	}
-	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
-		log.Println("Unmarshal json Error:", err)
-		return eastmoney
-	}
-
-	eastmoney.Realtime.Name = r.Data.F58
-	eastmoney.Realtime.Now = r.Data.F43
-	eastmoney.Realtime.High = r.Data.F44
-	eastmoney.Realtime.Low = r.Data.F45
-	eastmoney.Realtime.Open = r.Data.F46
-	eastmoney.Realtime.Last = r.Data.F60
-	eastmoney.Realtime.Change = r.Data.F169
-	eastmoney.Realtime.Percent = fmt.Sprintf("%g%%", r.Data.F170)
-	eastmoney.Realtime.Update = time.Now().Format(time.RFC3339)
-
-	eastmoney.Realtime.Buy5 = []stock.SellBuy{
-		{Price: r.Data.F19, Volume: r.Data.F20},
-		{Price: r.Data.F17, Volume: r.Data.F18},
-		{Price: r.Data.F15, Volume: r.Data.F16},
-		{Price: r.Data.F13, Volume: r.Data.F14},
-		{Price: r.Data.F11, Volume: r.Data.F12},
-	}
-	eastmoney.Realtime.Sell5 = []stock.SellBuy{
-		{Price: r.Data.F39, Volume: r.Data.F40},
-		{Price: r.Data.F37, Volume: r.Data.F38},
-		{Price: r.Data.F35, Volume: r.Data.F36},
-		{Price: r.Data.F33, Volume: r.Data.F34},
-		{Price: r.Data.F31, Volume: r.Data.F32},
-	}
-
-	if reflect.DeepEqual(eastmoney.Realtime.Sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
-		reflect.DeepEqual(eastmoney.Realtime.Buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		eastmoney.Realtime.Buy5 = []stock.SellBuy{}
-		eastmoney.Realtime.Sell5 = []stock.SellBuy{}
-	}
-
-	return eastmoney
 }
 
-func (eastmoney *EastMoney) getChart() *EastMoney {
+type eastmoneyChart struct {
+	Data struct {
+		PreClose float64
+		Trends   []string
+	}
+}
+
+func (s *EastMoney) getRealtime() *EastMoney {
+	s.Realtime.Index = s.Index
+	s.Realtime.Code = s.Code
+
 	var code string
-	switch strings.ToLower(eastmoney.Index) {
+	switch strings.ToLower(s.Index) {
 	case "sse":
-		code = "1." + eastmoney.Code
+		code = "1." + s.Code
 	case "szse", "bse":
-		code = "0." + eastmoney.Code
+		code = "0." + s.Code
 	default:
-		return eastmoney
+		return s
 	}
 
-	var r struct {
-		Data struct {
-			PreClose float64
-			Trends   []string
-		}
+	var r eastmoney
+	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
+		return s
 	}
+
+	s.Realtime.Name = r.Data.Name
+	s.Realtime.Now = r.Data.Now
+	s.Realtime.High = r.Data.High
+	s.Realtime.Low = r.Data.Low
+	s.Realtime.Open = r.Data.Open
+	s.Realtime.Last = r.Data.Last
+	s.Realtime.Change = r.Data.Change
+	s.Realtime.Percent = fmt.Sprintf("%g%%", r.Data.Percent)
+	s.Realtime.Update = time.Now().Format(time.RFC3339)
+
+	s.Realtime.Buy5 = []stock.SellBuy{
+		{Price: r.Data.Buy1Price, Volume: r.Data.Buy1Volume},
+		{Price: r.Data.Buy2Price, Volume: r.Data.Buy2Volume},
+		{Price: r.Data.Buy3Price, Volume: r.Data.Buy3Volume},
+		{Price: r.Data.Buy4Price, Volume: r.Data.Buy4Volume},
+		{Price: r.Data.Buy5Price, Volume: r.Data.Buy5Volume},
+	}
+	s.Realtime.Sell5 = []stock.SellBuy{
+		{Price: r.Data.Sell1Price, Volume: r.Data.Sell1Volume},
+		{Price: r.Data.Sell2Price, Volume: r.Data.Sell2Volume},
+		{Price: r.Data.Sell3Price, Volume: r.Data.Sell3Volume},
+		{Price: r.Data.Sell4Price, Volume: r.Data.Sell4Volume},
+		{Price: r.Data.Sell5Price, Volume: r.Data.Sell5Volume},
+	}
+
+	if reflect.DeepEqual(s.Realtime.Sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) &&
+		reflect.DeepEqual(s.Realtime.Buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
+		s.Realtime.Buy5 = []stock.SellBuy{}
+		s.Realtime.Sell5 = []stock.SellBuy{}
+	}
+
+	return s
+}
+
+func (s *EastMoney) getChart() *EastMoney {
+	var code string
+	switch strings.ToLower(s.Index) {
+	case "sse":
+		code = "1." + s.Code
+	case "szse", "bse":
+		code = "0." + s.Code
+	default:
+		return s
+	}
+
+	var r eastmoneyChart
 	if err := stock.Session.Get(chartAPI+code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get eastmoney chart:", err)
-		return eastmoney
+		return s
 	}
 
-	eastmoney.Chart.Last = r.Data.PreClose
+	s.Chart.Last = r.Data.PreClose
 
 	for _, i := range r.Data.Trends {
 		data := strings.Split(strings.Split(i, " ")[1], ",")
 		x := data[0]
 		y, _ := strconv.ParseFloat(data[1], 64)
-		eastmoney.Chart.Data = append(eastmoney.Chart.Data, stock.Point{X: x, Y: y})
+		s.Chart.Data = append(s.Chart.Data, stock.Point{X: x, Y: y})
 	}
 
-	return eastmoney
+	return s
 }
 
 // GetRealtime gets the stock's realtime information.
-func (eastmoney *EastMoney) GetRealtime() stock.Realtime {
-	return eastmoney.getRealtime().Realtime
+func (s *EastMoney) GetRealtime() stock.Realtime {
+	return s.getRealtime().Realtime
 }
 
 // GetChart gets the stock's chart data.
-func (eastmoney *EastMoney) GetChart() stock.Chart {
-	return eastmoney.getChart().Chart
+func (s *EastMoney) GetChart() stock.Chart {
+	return s.getChart().Chart
 }
 
 // Suggests returns sse and szse stock suggests according the keyword.

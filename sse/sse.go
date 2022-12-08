@@ -26,29 +26,36 @@ type SSE struct {
 	Chart    stock.Chart
 }
 
-func (sse *SSE) getRealtime() *SSE {
-	sse.Realtime.Index = "SSE"
-	sse.Realtime.Code = sse.Code
+type sse struct {
+	Date int
+	Time int
+	Snap []any
+}
 
-	var r struct {
-		Date int
-		Time int
-		Snap []interface{}
-	}
-	if err := stock.Session.Get(api+sse.Code, nil).JSON(&r); err != nil {
+type sseChart struct {
+	PrevClose float64 `json:"prev_close"`
+	Line      [][]any
+}
+
+func (s *SSE) getRealtime() *SSE {
+	s.Realtime.Index = "SSE"
+	s.Realtime.Code = s.Code
+
+	var r sse
+	if err := stock.Session.Get(api+s.Code, nil).JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
-		return sse
+		return s
 	}
 
-	sse.Realtime.Name = r.Snap[0].(string)
-	sse.Realtime.Now = r.Snap[5].(float64)
-	sse.Realtime.Change = r.Snap[6].(float64)
-	sse.Realtime.Percent = fmt.Sprintf("%.2f", r.Snap[7].(float64)) + "%"
-	sse.Realtime.High = r.Snap[3].(float64)
-	sse.Realtime.Low = r.Snap[4].(float64)
-	sse.Realtime.Open = r.Snap[2].(float64)
-	sse.Realtime.Last = r.Snap[1].(float64)
-	sse.Realtime.Update = fmt.Sprintf("%d.%d", r.Date, r.Time)
+	s.Realtime.Name = r.Snap[0].(string)
+	s.Realtime.Now = r.Snap[5].(float64)
+	s.Realtime.Change = r.Snap[6].(float64)
+	s.Realtime.Percent = fmt.Sprintf("%.2f", r.Snap[7].(float64)) + "%"
+	s.Realtime.High = r.Snap[3].(float64)
+	s.Realtime.Low = r.Snap[4].(float64)
+	s.Realtime.Open = r.Snap[2].(float64)
+	s.Realtime.Last = r.Snap[1].(float64)
+	s.Realtime.Update = fmt.Sprintf("%d.%d", r.Date, r.Time)
 
 	sell5 := []stock.SellBuy{}
 	buy5 := []stock.SellBuy{}
@@ -56,38 +63,35 @@ func (sse *SSE) getRealtime() *SSE {
 		sell5 = append(
 			sell5,
 			stock.SellBuy{
-				Price:  r.Snap[len(r.Snap)-1].([]interface{})[i].(float64),
-				Volume: int(r.Snap[len(r.Snap)-1].([]interface{})[i+1].(float64)) / 100,
+				Price:  r.Snap[len(r.Snap)-1].([]any)[i].(float64),
+				Volume: int(r.Snap[len(r.Snap)-1].([]any)[i+1].(float64)) / 100,
 			})
 		buy5 = append(
 			buy5,
 			stock.SellBuy{
-				Price:  r.Snap[len(r.Snap)-2].([]interface{})[i].(float64),
-				Volume: int(r.Snap[len(r.Snap)-2].([]interface{})[i+1].(float64)) / 100,
+				Price:  r.Snap[len(r.Snap)-2].([]any)[i].(float64),
+				Volume: int(r.Snap[len(r.Snap)-2].([]any)[i+1].(float64)) / 100,
 			})
 	}
 	if !reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) ||
 		!reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		sse.Realtime.Sell5 = sell5
-		sse.Realtime.Buy5 = buy5
+		s.Realtime.Sell5 = sell5
+		s.Realtime.Buy5 = buy5
 	} else {
-		sse.Realtime.Buy5 = []stock.SellBuy{}
-		sse.Realtime.Sell5 = []stock.SellBuy{}
+		s.Realtime.Buy5 = []stock.SellBuy{}
+		s.Realtime.Sell5 = []stock.SellBuy{}
 	}
 
-	return sse
+	return s
 }
 
-func (sse *SSE) getChart() *SSE {
-	var r struct {
-		PrevClose float64 `json:"prev_close"`
-		Line      [][]interface{}
-	}
-	if err := stock.Session.Get(chartAPI+sse.Code, nil).JSON(&r); err != nil {
+func (s *SSE) getChart() *SSE {
+	var r sseChart
+	if err := stock.Session.Get(chartAPI+s.Code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get sse chart:", err)
-		return sse
+		return s
 	}
-	sse.Chart.Last = r.PrevClose
+	s.Chart.Last = r.PrevClose
 
 	t := time.Now()
 	var sessions []string
@@ -100,20 +104,20 @@ func (sse *SSE) getChart() *SSE {
 			sessions, time.Date(t.Year(), t.Month(), t.Day(), 13, 1, 0, 0, time.Local).Add(time.Duration(i)*time.Minute).Format("15:04"))
 	}
 	for i, v := range r.Line {
-		sse.Chart.Data = append(sse.Chart.Data, stock.Point{X: sessions[i], Y: v[0].(float64)})
+		s.Chart.Data = append(s.Chart.Data, stock.Point{X: sessions[i], Y: v[0].(float64)})
 	}
 
-	return sse
+	return s
 }
 
 // GetRealtime gets the sse stock's realtime information.
-func (sse *SSE) GetRealtime() stock.Realtime {
-	return sse.getRealtime().Realtime
+func (s *SSE) GetRealtime() stock.Realtime {
+	return s.getRealtime().Realtime
 }
 
 // GetChart gets the sse stock's chart data.
-func (sse *SSE) GetChart() stock.Chart {
-	return sse.getChart().Chart
+func (s *SSE) GetChart() stock.Chart {
+	return s.getChart().Chart
 }
 
 // Suggests returns sse stock suggests according the keyword.

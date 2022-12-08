@@ -26,47 +26,47 @@ type TXZQ struct {
 	Chart    stock.Chart
 }
 
-func (txzq *TXZQ) get() *TXZQ {
-	txzq.Realtime.Index = txzq.Index
-	txzq.Realtime.Code = txzq.Code
+func (s *TXZQ) get() *TXZQ {
+	s.Realtime.Index = s.Index
+	s.Realtime.Code = s.Code
 
 	var code string
-	switch strings.ToLower(txzq.Index) {
+	switch strings.ToLower(s.Index) {
 	case "sse":
-		code = "sh" + txzq.Code
+		code = "sh" + s.Code
 	case "szse":
-		code = "sz" + txzq.Code
+		code = "sz" + s.Code
 	default:
-		return txzq
+		return s
 	}
 
-	var r struct{ Data map[string]interface{} }
+	var r struct{ Data map[string]any }
 	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get txzq:", err)
-		return txzq
+		return s
 	}
 
 	data, ok := r.Data[code]
 	if !ok {
 		log.Println("Failed to get this stock:", code)
-		return txzq
+		return s
 	}
 
-	realtime, ok := data.(map[string]interface{})["qt"].(map[string]interface{})[code].([]interface{})
+	realtime, ok := data.(map[string]any)["qt"].(map[string]any)[code].([]any)
 	if !ok {
 		log.Println("Failed to get this stock realtime")
-		return txzq
+		return s
 	}
 
-	txzq.Realtime.Name = realtime[1].(string)
-	txzq.Realtime.Now, _ = strconv.ParseFloat(realtime[3].(string), 64)
-	txzq.Realtime.Change, _ = strconv.ParseFloat(realtime[31].(string), 64)
-	txzq.Realtime.Percent = realtime[32].(string) + "%"
-	txzq.Realtime.High, _ = strconv.ParseFloat(realtime[33].(string), 64)
-	txzq.Realtime.Low, _ = strconv.ParseFloat(realtime[34].(string), 64)
-	txzq.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
-	txzq.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
-	txzq.Realtime.Update = realtime[30].(string)
+	s.Realtime.Name = realtime[1].(string)
+	s.Realtime.Now, _ = strconv.ParseFloat(realtime[3].(string), 64)
+	s.Realtime.Change, _ = strconv.ParseFloat(realtime[31].(string), 64)
+	s.Realtime.Percent = realtime[32].(string) + "%"
+	s.Realtime.High, _ = strconv.ParseFloat(realtime[33].(string), 64)
+	s.Realtime.Low, _ = strconv.ParseFloat(realtime[34].(string), 64)
+	s.Realtime.Open, _ = strconv.ParseFloat(realtime[5].(string), 64)
+	s.Realtime.Last, _ = strconv.ParseFloat(realtime[4].(string), 64)
+	s.Realtime.Update = realtime[30].(string)
 
 	buy5 := []stock.SellBuy{}
 	sell5 := []stock.SellBuy{}
@@ -82,39 +82,39 @@ func (txzq *TXZQ) get() *TXZQ {
 	}
 	if !reflect.DeepEqual(buy5, []stock.SellBuy{{}, {}, {}, {}, {}}) ||
 		!reflect.DeepEqual(sell5, []stock.SellBuy{{}, {}, {}, {}, {}}) {
-		txzq.Realtime.Buy5 = buy5
-		txzq.Realtime.Sell5 = sell5
+		s.Realtime.Buy5 = buy5
+		s.Realtime.Sell5 = sell5
 	} else {
-		txzq.Realtime.Buy5 = []stock.SellBuy{}
-		txzq.Realtime.Sell5 = []stock.SellBuy{}
+		s.Realtime.Buy5 = []stock.SellBuy{}
+		s.Realtime.Sell5 = []stock.SellBuy{}
 	}
 
-	chart, ok := data.(map[string]interface{})["data"].(map[string]interface{})["data"].([]interface{})
+	chart, ok := data.(map[string]any)["data"].(map[string]any)["data"].([]any)
 	if !ok {
 		log.Println("Failed to get this stock chart")
-		return txzq
+		return s
 	}
-	txzq.Chart.Last = txzq.Realtime.Last
+	s.Chart.Last = s.Realtime.Last
 	for _, i := range chart {
 		point := strings.Split(i.(string), " ")
 		x := point[0][0:2] + ":" + point[0][2:4]
 		y, _ := strconv.ParseFloat(point[1], 64)
 		if x != "13:00" {
-			txzq.Chart.Data = append(txzq.Chart.Data, stock.Point{X: x, Y: y})
+			s.Chart.Data = append(s.Chart.Data, stock.Point{X: x, Y: y})
 		}
 	}
 
-	return txzq
+	return s
 }
 
 // GetRealtime gets the stock's realtime information.
-func (txzq *TXZQ) GetRealtime() stock.Realtime {
-	return txzq.get().Realtime
+func (s *TXZQ) GetRealtime() stock.Realtime {
+	return s.get().Realtime
 }
 
 // GetChart gets the stock's chart data.
-func (txzq *TXZQ) GetChart() stock.Chart {
-	return txzq.get().Chart
+func (s *TXZQ) GetChart() stock.Chart {
+	return s.get().Chart
 }
 
 // Suggests returns sse and szse stock suggests according the keyword.

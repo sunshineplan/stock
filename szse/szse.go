@@ -23,47 +23,49 @@ type SZSE struct {
 	Chart    stock.Chart
 }
 
-func (szse *SZSE) get() *SZSE {
-	szse.Realtime.Index = "SZSE"
-	szse.Realtime.Code = szse.Code
-
-	var r struct {
-		Code string
-		Data struct {
-			Name         string
-			Close        string
-			Open         string
-			Now          string
-			High         string
-			Low          string
-			Delta        string
-			DeltaPercent string
-			MarketTime   string
-			Sellbuy5     []struct {
-				Price  string
-				Volume int
-			}
-			PicUpData [][]interface{}
+type szse struct {
+	Code string
+	Data struct {
+		Name         string
+		Close        string
+		Open         string
+		Now          string
+		High         string
+		Low          string
+		Delta        string
+		DeltaPercent string
+		MarketTime   string
+		Sellbuy5     []struct {
+			Price  string
+			Volume int
 		}
+		PicUpData [][]any
 	}
-	if err := stock.Session.Get(api+szse.Code, nil).JSON(&r); err != nil {
+}
+
+func (s *SZSE) get() *SZSE {
+	s.Realtime.Index = "SZSE"
+	s.Realtime.Code = s.Code
+
+	var r szse
+	if err := stock.Session.Get(api+s.Code, nil).JSON(&r); err != nil {
 		log.Println("Failed to get szse:", err)
-		return szse
+		return s
 	}
 	if r.Code != "0" {
 		log.Println("Data code not equal zero.")
-		return szse
+		return s
 	}
 
-	szse.Realtime.Name = r.Data.Name
-	szse.Realtime.Now, _ = strconv.ParseFloat(r.Data.Now, 64)
-	szse.Realtime.Change, _ = strconv.ParseFloat(r.Data.Delta, 64)
-	szse.Realtime.Percent = r.Data.DeltaPercent + "%"
-	szse.Realtime.High, _ = strconv.ParseFloat(r.Data.High, 64)
-	szse.Realtime.Low, _ = strconv.ParseFloat(r.Data.Low, 64)
-	szse.Realtime.Open, _ = strconv.ParseFloat(r.Data.Open, 64)
-	szse.Realtime.Last, _ = strconv.ParseFloat(r.Data.Close, 64)
-	szse.Realtime.Update = r.Data.MarketTime
+	s.Realtime.Name = r.Data.Name
+	s.Realtime.Now, _ = strconv.ParseFloat(r.Data.Now, 64)
+	s.Realtime.Change, _ = strconv.ParseFloat(r.Data.Delta, 64)
+	s.Realtime.Percent = r.Data.DeltaPercent + "%"
+	s.Realtime.High, _ = strconv.ParseFloat(r.Data.High, 64)
+	s.Realtime.Low, _ = strconv.ParseFloat(r.Data.Low, 64)
+	s.Realtime.Open, _ = strconv.ParseFloat(r.Data.Open, 64)
+	s.Realtime.Last, _ = strconv.ParseFloat(r.Data.Close, 64)
+	s.Realtime.Update = r.Data.MarketTime
 
 	sell5 := []stock.SellBuy{}
 	buy5 := []stock.SellBuy{}
@@ -75,27 +77,27 @@ func (szse *SZSE) get() *SZSE {
 			buy5 = append(buy5, stock.SellBuy{Price: price, Volume: v.Volume})
 		}
 	}
-	szse.Realtime.Sell5 = sell5
-	szse.Realtime.Buy5 = buy5
+	s.Realtime.Sell5 = sell5
+	s.Realtime.Buy5 = buy5
 
-	szse.Chart.Last = szse.Realtime.Last
+	s.Chart.Last = s.Realtime.Last
 
 	for _, i := range r.Data.PicUpData {
 		y, _ := strconv.ParseFloat(i[1].(string), 64)
-		szse.Chart.Data = append(szse.Chart.Data, stock.Point{X: i[0].(string), Y: y})
+		s.Chart.Data = append(s.Chart.Data, stock.Point{X: i[0].(string), Y: y})
 	}
 
-	return szse
+	return s
 }
 
 // GetRealtime gets the szse stock's realtime information.
-func (szse *SZSE) GetRealtime() stock.Realtime {
-	return szse.get().Realtime
+func (s *SZSE) GetRealtime() stock.Realtime {
+	return s.get().Realtime
 }
 
 // GetChart gets the szse stock's chart data.
-func (szse *SZSE) GetChart() stock.Chart {
-	return szse.get().Chart
+func (s *SZSE) GetChart() stock.Chart {
+	return s.get().Chart
 }
 
 // Suggests returns szse stock suggests according the keyword.
