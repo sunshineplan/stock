@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	api        = "http://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
-	suggestAPI = "http://smartbox.gtimg.cn/s3/?t=%s&q=%s"
+	api        = "https://web.ifzq.gtimg.cn/appstock/app/minute/query?code="
+	suggestAPI = "https://smartbox.gtimg.cn/s3/?t=%s&q=%s"
 )
 
 var _ stock.Stock = &TXZQ{}

@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	api        = "http://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
-	suggestAPI = "http://www.szse.cn/api/search/suggest?keyword="
+	api        = "https://www.szse.cn/api/market/ssjjhq/getTimeData?marketId=1&code="
+	suggestAPI = "https://www.szse.cn/api/search/suggest?keyword="
 )
 
 var _ stock.Stock = &SZSE{}

@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	api        = "http://www.bse.cn/nqhqController/nqhq.do?xxfcbj=2&zqdm="
-	chartAPI   = "http://www.bse.cn/companyEchartsController/getTimeSharingChart/list/%s.do"
-	suggestAPI = "http://www.bse.cn/nqxxController/getBSECode.do"
+	api        = "https://www.bse.cn/nqhqController/nqhq.do?xxfcbj=2&zqdm="
+	chartAPI   = "https://www.bse.cn/companyEchartsController/getTimeSharingChart/list/%s.do"
+	suggestAPI = "https://www.bse.cn/nqxxController/getBSECode.do"
 )
 
 var _ stock.Stock = &BSE{}
