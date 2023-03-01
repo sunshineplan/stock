@@ -26,7 +26,7 @@ func TestTXZQ(t *testing.T) {
 	}
 }
 
-func TestSuggests(t *testing.T) {
+func TestTXZQSuggests(t *testing.T) {
 	s := Suggests("whhx")
 	if len(s) == 0 {
 		t.Fatal("no result")

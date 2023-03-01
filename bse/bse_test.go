@@ -16,7 +16,7 @@ func TestBSE(t *testing.T) {
 	}
 }
 
-func TestSuggests(t *testing.T) {
+func TestBSESuggests(t *testing.T) {
 	s := Suggests("nsld")
 	if len(s) == 0 {
 		t.Fatal("no result")

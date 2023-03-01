@@ -16,7 +16,7 @@ func TestSZSE(t *testing.T) {
 	}
 }
 
-func TestSuggests(t *testing.T) {
+func TestSZSESuggests(t *testing.T) {
 	s := Suggests("nbyh")
 	if len(s) == 0 {
 		t.Fatal("no result")

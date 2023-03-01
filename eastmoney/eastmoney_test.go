@@ -95,7 +95,7 @@ func TestEastMoney(t *testing.T) {
 	}
 }
 
-func TestSuggests(t *testing.T) {
+func TestEastMoneySuggests(t *testing.T) {
 	var s []stock.Suggest
 	retry.Do(
 		func() error {
