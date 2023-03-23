@@ -80,18 +80,18 @@ func TestEastMoney(t *testing.T) {
 		t.Errorf("expected %q; got %q", "诺思兰德", name)
 	}
 
-	s = EastMoney{Index: "BSE", Code: "834021"}
+	s = EastMoney{Index: "BSE", Code: "835185"}
 	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
-			if name != "流金岁月" {
+			if name != "贝特瑞" {
 				return errors.New("retry")
 			}
 			return nil
 		}, 5, 20,
 	)
-	if name != "流金岁月" {
-		t.Errorf("expected %q; got %q", "流金岁月", name)
+	if name != "贝特瑞" {
+		t.Errorf("expected %q; got %q", "贝特瑞", name)
 	}
 }
 
@@ -194,7 +194,7 @@ func TestEastMoneySuggests(t *testing.T) {
 
 	retry.Do(
 		func() error {
-			s = Suggests("ljsy")
+			s = Suggests("btr")
 			if len(s) == 0 {
 				return errors.New("retry")
 			}
@@ -207,7 +207,7 @@ func TestEastMoneySuggests(t *testing.T) {
 	if i := s[0].Index; i != "BSE" {
 		t.Errorf("expected %q; got %q", "BSE", i)
 	}
-	if n := s[0].Name; n != "流金岁月" {
-		t.Errorf("expected %q; got %q", "流金岁月", n)
+	if n := s[0].Name; n != "贝特瑞" {
+		t.Errorf("expected %q; got %q", "贝特瑞", n)
 	}
 }
