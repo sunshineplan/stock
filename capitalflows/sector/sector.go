@@ -6,11 +6,11 @@ var _ Sectors = charts{}
 
 type charts []Chart
 
-func (c charts) GetChart() []Chart {
+func (c charts) Charts() []Chart {
 	return c
 }
 
-func (c charts) GetTimeLine() (timelines []TimeLine) {
+func (c charts) TimeLines() (timelines []TimeLine) {
 	for _, i := range c {
 		timelines = append(timelines, Chart2TimeLine(i))
 	}

@@ -1,8 +1,8 @@
 package sector
 
 type Sectors interface {
-	GetChart() []Chart
-	GetTimeLine() []TimeLine
+	Charts() []Chart
+	TimeLines() []TimeLine
 }
 
 // TimeLine contains one day timeline data.
