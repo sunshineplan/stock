@@ -41,8 +41,16 @@ func (s *TXZQ) get() *TXZQ {
 	}
 
 	var r struct{ Data map[string]any }
-	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(api+code, nil)
+	if err != nil {
 		log.Println("Failed to get txzq:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return s
 	}
 
@@ -120,10 +128,17 @@ func (s *TXZQ) GetChart() stock.Chart {
 // Suggests returns sse and szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	for _, t := range []string{"gp", "jj"} {
-		result := stock.Session.Get(fmt.Sprintf(suggestAPI, t, keyword), nil).String()
+		resp, err := stock.Session.Get(fmt.Sprintf(suggestAPI, t, keyword), nil)
+		if err != nil {
+			log.Println("Failed to get txzq suggest:", err)
+			continue
+		} else if resp.StatusCode != 200 {
+			log.Println("Bad status code:", resp.StatusCode)
+			continue
+		}
 		sse := regexp.MustCompile(stock.SSEPattern)
 		szse := regexp.MustCompile(stock.SZSEPattern)
-		for _, i := range split(result) {
+		for _, i := range split(resp.String()) {
 			name, _ := strconv.Unquote(fmt.Sprintf(`"%s"`, i[2]))
 			switch i[0] {
 			case "sh":

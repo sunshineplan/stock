@@ -42,7 +42,15 @@ func (s *SSE) getRealtime() *SSE {
 	s.Realtime.Code = s.Code
 
 	var r sse
-	if err := stock.Session.Get(api+s.Code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(api+s.Code, nil)
+	if err != nil {
+		log.Println("Failed to get sse realtime:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return s
 	}
@@ -87,8 +95,16 @@ func (s *SSE) getRealtime() *SSE {
 
 func (s *SSE) getChart() *SSE {
 	var r sseChart
-	if err := stock.Session.Get(chartAPI+s.Code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(chartAPI+s.Code, nil)
+	if err != nil {
 		log.Println("Failed to get sse chart:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return s
 	}
 	s.Chart.Last = r.PrevClose
@@ -125,8 +141,16 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 	var r struct {
 		Data []struct{ Category, Code, Word string }
 	}
-	if err := gohttp.Get(suggestAPI+keyword, gohttp.H{"Referer": "http://www.sse.com.cn/"}).JSON(&r); err != nil {
+	resp, err := gohttp.Get(suggestAPI+keyword, gohttp.H{"Referer": "http://www.sse.com.cn/"})
+	if err != nil {
 		log.Println("Failed to get sse suggest:", err)
+		return
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return
 	}
 

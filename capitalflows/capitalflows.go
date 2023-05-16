@@ -2,6 +2,7 @@ package capitalflows
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/sunshineplan/stock"
 )
@@ -84,7 +85,14 @@ func Fetch() (cf CapitalFlows, err error) {
 			Total int
 		}
 	}
-	if err = stock.Session.Get(api, nil).JSON(&res); err != nil {
+	resp, err := stock.Session.Get(api, nil)
+	if err != nil {
+		return
+	} else if resp.StatusCode != 200 {
+		err = fmt.Errorf("status code: %d", resp.StatusCode)
+		return
+	}
+	if err = resp.JSON(&res); err != nil {
 		return
 	}
 

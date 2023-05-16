@@ -80,7 +80,14 @@ func (s *BSE) getRealtime() *BSE {
 	s.Realtime.Code = s.Code
 
 	var res []bse
-	resp := stock.Session.Get(api+s.Code, nil)
+	resp, err := stock.Session.Get(api+s.Code, nil)
+	if err != nil {
+		log.Println("Failed to get bse realtime:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
 	if err := json.Unmarshal(trimCallback(resp.Bytes()), &res); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return s
@@ -127,8 +134,16 @@ func (s *BSE) getRealtime() *BSE {
 
 func (s *BSE) getChart() *BSE {
 	var r bseChart
-	if err := stock.Session.Get(fmt.Sprintf(chartAPI, s.Code), nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(fmt.Sprintf(chartAPI, s.Code), nil)
+	if err != nil {
 		log.Println("Failed to get bse chart:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return s
 	}
 	if len(r.Data.Line) > 0 {
@@ -163,10 +178,17 @@ func trimCallback(b []byte) []byte {
 
 // Suggests returns bse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
-	resp := gohttp.Post(suggestAPI, nil, url.Values{"code": {keyword}})
+	resp, err := gohttp.Post(suggestAPI, nil, url.Values{"code": {keyword}})
+	if err != nil {
+		log.Println("Failed to get bse suggest:", err)
+		return
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return
+	}
 	var r []string
 	if err := json.Unmarshal(trimCallback(resp.Bytes()), &r); err != nil {
-		log.Println("Failed to get bse suggest:", err)
+		log.Println("Unmarshal json Error:", err)
 		return
 	}
 

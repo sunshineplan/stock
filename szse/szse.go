@@ -48,8 +48,16 @@ func (s *SZSE) get() *SZSE {
 	s.Realtime.Code = s.Code
 
 	var r szse
-	if err := stock.Session.Get(api+s.Code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(api+s.Code, nil)
+	if err != nil {
 		log.Println("Failed to get szse:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return s
 	}
 	if r.Code != "0" {
@@ -103,8 +111,16 @@ func (s *SZSE) GetChart() stock.Chart {
 // Suggests returns szse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
 	var r []struct{ WordB, Value, Type string }
-	if err := stock.Session.Post(suggestAPI+keyword, nil, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Post(suggestAPI+keyword, nil, nil)
+	if err != nil {
 		log.Println("Failed to get szse suggest:", err)
+		return
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return
 	}
 

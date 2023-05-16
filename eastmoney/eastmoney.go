@@ -86,7 +86,15 @@ func (s *EastMoney) getRealtime() *EastMoney {
 	}
 
 	var r eastmoney
-	if err := stock.Session.Get(api+code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(api+code, nil)
+	if err != nil {
+		log.Println("Failed to get eastmoney realtime:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
 		log.Println("Unmarshal json Error:", err)
 		return s
 	}
@@ -137,8 +145,16 @@ func (s *EastMoney) getChart() *EastMoney {
 	}
 
 	var r eastmoneyChart
-	if err := stock.Session.Get(chartAPI+code, nil).JSON(&r); err != nil {
+	resp, err := stock.Session.Get(chartAPI+code, nil)
+	if err != nil {
 		log.Println("Failed to get eastmoney chart:", err)
+		return s
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return s
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return s
 	}
 
@@ -176,8 +192,16 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 			}
 		}
 	}
-	if err := gohttp.Get(fmt.Sprintf(suggestAPI, suggestToken, keyword), nil).JSON(&r); err != nil {
+	resp, err := gohttp.Get(fmt.Sprintf(suggestAPI, suggestToken, keyword), nil)
+	if err != nil {
 		log.Println("Failed to get eastmoney suggest:", err)
+		return
+	} else if resp.StatusCode != 200 {
+		log.Println("Bad status code:", resp.StatusCode)
+		return
+	}
+	if err := resp.JSON(&r); err != nil {
+		log.Println("Unmarshal json Error:", err)
 		return
 	}
 
