@@ -3,9 +3,9 @@ module github.com/sunshineplan/stock
 go 1.22
 
 require (
-	github.com/sunshineplan/database/mongodb v1.0.5
+	github.com/sunshineplan/database/mongodb v1.0.7
 	github.com/sunshineplan/gohttp v1.0.10
-	github.com/sunshineplan/utils v0.1.65
+	github.com/sunshineplan/utils v0.1.66
 )
 
 require (
