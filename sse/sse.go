@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"regexp"
 	"time"
 
-	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/stock"
 )
 
@@ -138,34 +136,6 @@ func (s *SSE) GetChart() stock.Chart {
 
 // Suggests returns sse stock suggests according the keyword.
 func Suggests(keyword string) (suggests []stock.Suggest) {
-	var r struct {
-		Data []struct{ Category, Code, Word string }
-	}
-	resp, err := gohttp.Get(suggestAPI+keyword, gohttp.H{"Referer": "http://www.sse.com.cn/"})
-	if err != nil {
-		log.Println("Failed to get sse suggest:", err)
-		return
-	} else if resp.StatusCode != 200 {
-		log.Println("Bad status code:", resp.StatusCode)
-		return
-	}
-	if err := resp.JSON(&r); err != nil {
-		log.Println("Unmarshal json Error:", err)
-		return
-	}
-
-	re := regexp.MustCompile(stock.SSEPattern)
-	for _, i := range r.Data {
-		if re.MatchString(i.Code) {
-			suggests = append(suggests, stock.Suggest{
-				Index: "SSE",
-				Code:  i.Code,
-				Name:  i.Word,
-				Type:  i.Category,
-			})
-		}
-	}
-
 	return
 }
 
