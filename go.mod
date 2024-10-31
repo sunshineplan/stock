@@ -3,7 +3,7 @@ module github.com/sunshineplan/stock
 go 1.23
 
 require (
-	github.com/sunshineplan/database/mongodb v1.0.9
+	github.com/sunshineplan/database/mongodb v1.0.10
 	github.com/sunshineplan/gohttp v1.0.10
 	github.com/sunshineplan/utils v0.1.73
 )
