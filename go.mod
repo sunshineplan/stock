@@ -1,7 +1,6 @@
 module github.com/sunshineplan/stock
 
 go 1.23
-
 require (
 	github.com/sunshineplan/database/mongodb v1.0.13
 	github.com/sunshineplan/gohttp v1.0.11
@@ -10,6 +9,6 @@ require (
 
 require (
 	go.mongodb.org/mongo-driver/v2 v2.0.0-beta2 // indirect
-	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 )
