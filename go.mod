@@ -1,6 +1,7 @@
 module github.com/sunshineplan/stock
 
-go 1.23
+go 1.24
+
 require (
 	github.com/sunshineplan/database/mongodb v1.0.13
 	github.com/sunshineplan/gohttp v1.0.11
