@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/sunshineplan/database/mongodb v1.0.13
 	github.com/sunshineplan/gohttp v1.0.11
-	github.com/sunshineplan/utils v0.1.74
+	github.com/sunshineplan/utils v0.1.76
 )
 
 require (
