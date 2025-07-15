@@ -16,7 +16,7 @@ import (
 const (
 	api          = "https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
 	chartAPI     = "https://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
-	suggestAPI   = "https://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s"
+	suggestAPI   = "https://searchapi.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s&count=50"
 	suggestToken = "D43BF722C8E33BDC906FB84D85E326E8"
 )
 
