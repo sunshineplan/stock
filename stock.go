@@ -14,7 +14,7 @@ import (
 const (
 	SSEPattern  = `[056]\d{5}`
 	SZSEPattern = `[013]\d{5}`
-	BSEPattern  = `[48]\d{5}`
+	BSEPattern  = `92\d{4}`
 )
 
 var Session = gohttp.NewSession()
