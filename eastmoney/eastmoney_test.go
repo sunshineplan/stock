@@ -66,7 +66,7 @@ func TestEastMoney(t *testing.T) {
 		t.Errorf("expected %q; got %q", "东方财富", name)
 	}
 
-	s = EastMoney{Index: "BSE", Code: "430047"}
+	s = EastMoney{Index: "BSE", Code: "920047"}
 	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
@@ -80,7 +80,7 @@ func TestEastMoney(t *testing.T) {
 		t.Errorf("expected %q; got %q", "诺思兰德", name)
 	}
 
-	s = EastMoney{Index: "BSE", Code: "835185"}
+	s = EastMoney{Index: "BSE", Code: "920185"}
 	retry.Do(
 		func() error {
 			name = s.getRealtime().Realtime.Name
