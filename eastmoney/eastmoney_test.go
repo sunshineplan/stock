@@ -1,111 +1,44 @@
 package eastmoney
 
 import (
-	"errors"
 	"testing"
-
-	"github.com/sunshineplan/stock"
-	"github.com/sunshineplan/utils/retry"
 )
 
 func TestEastMoney(t *testing.T) {
 	var name string
 	s := EastMoney{Index: "SSE", Code: "600309"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "万华化学" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "万华化学" {
+	if name = s.getRealtime().Realtime.Name; name != "万华化学" {
 		t.Errorf("expected %q; got %q", "万华化学", name)
 	}
 
 	s = EastMoney{Index: "SSE", Code: "688318"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "财富趋势" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "财富趋势" {
+	if name = s.getRealtime().Realtime.Name; name != "财富趋势" {
 		t.Errorf("expected %q; got %q", "财富趋势", name)
 	}
 
 	s = EastMoney{Index: "SZSE", Code: "002142"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "宁波银行" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "宁波银行" {
+	if name = s.getRealtime().Realtime.Name; name != "宁波银行" {
 		t.Errorf("expected %q; got %q", "宁波银行", name)
 	}
 
 	s = EastMoney{Index: "SZSE", Code: "300059"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "东方财富" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "东方财富" {
+	if name = s.getRealtime().Realtime.Name; name != "东方财富" {
 		t.Errorf("expected %q; got %q", "东方财富", name)
 	}
 
 	s = EastMoney{Index: "BSE", Code: "920047"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "诺思兰德" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "诺思兰德" {
+	if name = s.getRealtime().Realtime.Name; name != "诺思兰德" {
 		t.Errorf("expected %q; got %q", "诺思兰德", name)
 	}
 
 	s = EastMoney{Index: "BSE", Code: "920185"}
-	retry.Do(
-		func() error {
-			name = s.getRealtime().Realtime.Name
-			if name != "贝特瑞" {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
-	if name != "贝特瑞" {
+	if name = s.getRealtime().Realtime.Name; name != "贝特瑞" {
 		t.Errorf("expected %q; got %q", "贝特瑞", name)
 	}
 }
 
 func TestEastMoneySuggests(t *testing.T) {
-	var s []stock.Suggest
-	retry.Do(
-		func() error {
-			s = Suggests("whhx")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s := Suggests("whhx")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
@@ -116,15 +49,7 @@ func TestEastMoneySuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "万华化学", n)
 	}
 
-	retry.Do(
-		func() error {
-			s = Suggests("cfqs")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s = Suggests("cfqs")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
@@ -135,15 +60,7 @@ func TestEastMoneySuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "财富趋势", n)
 	}
 
-	retry.Do(
-		func() error {
-			s = Suggests("nbyh")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s = Suggests("nbyh")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
@@ -154,15 +71,7 @@ func TestEastMoneySuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "宁波银行", n)
 	}
 
-	retry.Do(
-		func() error {
-			s = Suggests("dfcf")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s = Suggests("dfcf")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
@@ -173,15 +82,7 @@ func TestEastMoneySuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "东方财富", n)
 	}
 
-	retry.Do(
-		func() error {
-			s = Suggests("nsld")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s = Suggests("nsld")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
@@ -192,15 +93,7 @@ func TestEastMoneySuggests(t *testing.T) {
 		t.Errorf("expected %q; got %q", "诺思兰德", n)
 	}
 
-	retry.Do(
-		func() error {
-			s = Suggests("btr")
-			if len(s) == 0 {
-				return errors.New("retry")
-			}
-			return nil
-		}, 5, 20,
-	)
+	s = Suggests("btr")
 	if len(s) == 0 {
 		t.Fatal("no result")
 	}
