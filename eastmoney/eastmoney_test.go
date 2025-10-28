@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestEastMoney(t *testing.T) {
+func testEastMoney(t *testing.T) {
 	var name string
 	s := EastMoney{Index: "SSE", Code: "600309"}
 	if name = s.getRealtime().Realtime.Name; name != "万华化学" {

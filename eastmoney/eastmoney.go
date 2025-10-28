@@ -3,7 +3,6 @@ package eastmoney
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -14,7 +13,6 @@ import (
 )
 
 const (
-	nid          = "09eb187f79dc909ec16bdbde4b035e7c"
 	api          = "https://push2.eastmoney.com/api/qt/stock/get?fltt=2&fields=f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f43,f44,f45,f46,f58,f60,f169,f170,f531&secid="
 	chartAPI     = "https://push2.eastmoney.com/api/qt/stock/trends2/get?iscr=0&fields1=f5,f8&fields2=f53&secid="
 	suggestAPI   = "https://searchadapter.eastmoney.com/api/suggest/get?type=14&token=%s&input=%s&count=50"
@@ -231,35 +229,4 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 	}
 
 	return
-}
-
-func init() {
-	u, _ := url.Parse("https://push2.eastmoney.com/")
-	stock.Session.SetCookie(u, "nid", nid)
-	stock.RegisterStock(
-		"sse",
-		stock.SSEPattern,
-		func(code string) stock.Stock {
-			return &EastMoney{Index: "SSE", Code: code}
-		},
-		Suggests,
-	)
-
-	stock.RegisterStock(
-		"szse",
-		stock.SZSEPattern,
-		func(code string) stock.Stock {
-			return &EastMoney{Index: "SZSE", Code: code}
-		},
-		func(_ string) []stock.Suggest { return nil },
-	)
-
-	stock.RegisterStock(
-		"bse",
-		stock.BSEPattern,
-		func(code string) stock.Stock {
-			return &EastMoney{Index: "BSE", Code: code}
-		},
-		func(_ string) []stock.Suggest { return nil },
-	)
 }
