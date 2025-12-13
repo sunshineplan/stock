@@ -89,7 +89,9 @@ func (s *EastMoney) getRealtime() *EastMoney {
 	if err != nil {
 		log.Println("Failed to get eastmoney realtime:", err)
 		return s
-	} else if resp.StatusCode != 200 {
+	}
+	defer resp.Close()
+	if resp.StatusCode != 200 {
 		log.Println("Bad status code:", resp.StatusCode)
 		return s
 	}
@@ -148,7 +150,9 @@ func (s *EastMoney) getChart() *EastMoney {
 	if err != nil {
 		log.Println("Failed to get eastmoney chart:", err)
 		return s
-	} else if resp.StatusCode != 200 {
+	}
+	defer resp.Close()
+	if resp.StatusCode != 200 {
 		log.Println("Bad status code:", resp.StatusCode)
 		return s
 	}
@@ -195,7 +199,9 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 	if err != nil {
 		log.Println("Failed to get eastmoney suggest:", err)
 		return
-	} else if resp.StatusCode != 200 {
+	}
+	defer resp.Close()
+	if resp.StatusCode != 200 {
 		log.Println("Bad status code:", resp.StatusCode)
 		return
 	}

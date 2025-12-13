@@ -45,7 +45,9 @@ func (s *TXZQ) get() *TXZQ {
 	if err != nil {
 		log.Println("Failed to get txzq:", err)
 		return s
-	} else if resp.StatusCode != 200 {
+	}
+	defer resp.Close()
+	if resp.StatusCode != 200 {
 		log.Println("Bad status code:", resp.StatusCode)
 		return s
 	}
@@ -132,7 +134,9 @@ func Suggests(keyword string) (suggests []stock.Suggest) {
 		if err != nil {
 			log.Println("Failed to get txzq suggest:", err)
 			continue
-		} else if resp.StatusCode != 200 {
+		}
+		defer resp.Close()
+		if resp.StatusCode != 200 {
 			log.Println("Bad status code:", resp.StatusCode)
 			continue
 		}
