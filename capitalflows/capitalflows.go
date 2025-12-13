@@ -26,6 +26,7 @@ func Fetch() (cf CapitalFlows, err error) {
 	if err != nil {
 		return
 	}
+	defer resp.Close()
 	if resp.StatusCode != 200 {
 		err = fmt.Errorf("status code: %d", resp.StatusCode)
 		return
