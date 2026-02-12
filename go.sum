@@ -6,8 +6,8 @@ github.com/sunshineplan/database/mongodb v1.0.15 h1:EG7SuJhoXN8pzTzBYLBQdnKioHSV
 github.com/sunshineplan/database/mongodb v1.0.15/go.mod h1:q8yEiWP4+Fkr5Hlan7PT+FIhYq+xsH6HnwNH5ortDPw=
 github.com/sunshineplan/gohttp v1.0.12 h1:h6Rd1xlHOGRXMrLRojeGK4plfbJjFG4Sa5BUqYbeKPo=
 github.com/sunshineplan/gohttp v1.0.12/go.mod h1:PjCV1HVpVKIHvwR4erpqZsK6PWQIjSjA9YEFcbuN700=
-github.com/sunshineplan/utils v0.1.83 h1:fkS0caihlOWle6Klmhio3pVsr0e39HgQYrVBvC7JcuI=
-github.com/sunshineplan/utils v0.1.83/go.mod h1:yE18bZxiAbXACldV0BuTewbmj2y2fRBFrBUHRfD36ZA=
+github.com/sunshineplan/utils v0.1.84 h1:RMZK73sz8THyQueGn5qxu0+Bh+4QvSf+Z+OEikVZKyY=
+github.com/sunshineplan/utils v0.1.84/go.mod h1:K5M8sNh+F47+aHfABZIiFJHVhC2DhiNhGZ9SgBQPPdE=
 go.mongodb.org/mongo-driver/v2 v2.4.1 h1:hGDMngUao03OVQ6sgV5csk+RWOIkF+CuLsTPobNMGNI=
 go.mongodb.org/mongo-driver/v2 v2.4.1/go.mod h1:jHeEDJHJq7tm6ZF45Issun9dbogjfnPySb1vXA7EeAI=
 golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=

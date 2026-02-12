@@ -1,11 +1,11 @@
 module github.com/sunshineplan/stock
 
-go 1.25
+go 1.26
 
 require (
 	github.com/sunshineplan/database/mongodb v1.0.15
 	github.com/sunshineplan/gohttp v1.0.12
-	github.com/sunshineplan/utils v0.1.83
+	github.com/sunshineplan/utils v0.1.84
 )
 
 require (
